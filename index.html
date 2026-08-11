@@ -643,8 +643,16 @@
     };
   </script>
 
-  <!-- LÓGICA DO APLICATIVO -->
+    <!-- LÓGICA DO APLICATIVO -->
   <script>
+    // CÓDIGO QUE ACORDA O BOTÃO DE DOWNLOAD
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('Service Worker registrado!'))
+          .catch(err => console.log('Erro no Service Worker:', err));
+      });
+    }
     let perfil = JSON.parse(localStorage.getItem('orca_perfil_v2')) || {
       nome: 'Sua Empresa / Nome',
       whats: '',
