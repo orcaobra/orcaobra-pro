@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OrçaObra Pro - Gerador de Orçamentos e Contratos</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e3a8a">
+  <link rel="apple-touch-icon" href="icon.png">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- HTML2PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+  <style>
+    .pdf-page-container {
+      width: 700px;
+      margin: 0 auto;
+      background: white;
+      box-sizing: border-box;
+    }
+    .avoid-break {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans pb-16 select-none">
+
+  <!-- CABEÇALHO DA APLICAÇÃO -->
+  <header class="bg-blue-800 text-white p-4 shadow-lg sticky top-0 z-40">
+    <div class="max-w-4xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div id="header-logo-container" class="hidden">
+          <img id="header-logo-img" src="" alt="Logo" class="h-9 w-9 object-cover rounded-lg border border-white/30 bg-white">
+        </div>
+        <div>
+          <h1 class="text-xl font-bold flex items-center gap-2 leading-tight">
+            <i class="fa-solid fa-calculator text-amber-400"></i> OrçaObra Pro
+          </h1>
+          <p id="user-status-badge" class="text-xs text-amber-300 font-semibold"></p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <button id="btn-install-pwa" onclick="instalarPWA()" class="hidden bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow transition">
+          <i class="fa-solid fa-download"></i> Baixar App
+        </button>
+        <button id="btn-perfil" onclick="toggleModalPerfil()" class="hidden bg-blue-900 hover:bg-blue-950 px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 border border-blue-600 shadow transition">
+          <i class="fa-solid fa-user-gear"></i> Perfil
+        </button>
+        <button id="btn-logout" onclick="fazerLogout()" class="hidden bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold border border-red-500 shadow transition">
+          <i class="fa-solid fa-right-from-bracket"></i> Sair
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- BANNER DE BLOQUEIO DA ASSINATURA -->
+  <div id="banner-assinatura-bloqueada" class="bg-red-600 text-white text-xs font-bold py-3 px-4 shadow-md hidden text-center space-y-2">
+    <p><i class="fa-solid fa-lock"></i> Seus 30 dias de acesso expiraram! Renove sua assinatura para continuar utilizando o aplicativo.</p>
+    <a href="https://pay.kirvano.com/3374c0d4-8919-435f-8a41-18c236bfe6ac" target="_blank" class="inline-block bg-amber-400 text-slate-950 px-4 py-2 rounded-lg font-extrabold hover:bg-amber-300 shadow transition uppercase">
+      <i class="fa-solid fa-credit-card"></i> Renovar Assinatura (R$ 19,90/mês)
+    </a>
+  </div>
+
+  <!-- TELA DE LOGIN / CADASTRO -->
+  <div id="screen-auth" class="max-w-md mx-auto p-4 my-8 bg-white rounded-2xl shadow-xl border border-slate-200 space-y-5">
+    <div class="text-center space-y-1">
+      <i class="fa-solid fa-calculator text-blue-800 text-4xl"></i>
+      <h2 class="text-xl font-extrabold text-slate-800">Acesse o OrçaObra Pro</h2>
+      <p class="text-xs text-slate-500">Ative sua conta para ter 30 dias de acesso completo!</p>
+    </div>
+
+    <div class="flex border-b text-sm font-bold">
+      <button id="tab-auth-login" onclick="mudarAbaAuth('login')" class="flex-1 py-2 border-b-2 border-blue-800 text-blue-800">Entrar</button>
+      <button id="tab-auth-cad" onclick="mudarAbaAuth('cad')" class="flex-1 py-2 border-b-2 border-transparent text-slate-400">Criar Conta</button>
+    </div>
+
+    <!-- Formulário Login -->
+    <div id="form-auth-login" class="space-y-3 text-xs">
+      <div>
+        <label class="block font-semibold mb-1 text-slate-600">E-mail</label>
+        <input type="email" id="auth-email-login" class="w-full border rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block font-semibold mb-1 text-slate-600">Senha</label>
+        <input type="password" id="auth-senha-login" class="w-full border rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <button onclick="executarLogin()" class="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 rounded-xl shadow transition text-sm">
+        Entrar no Aplicativo
+      </button>
+    </div>
+
+    <!-- Formulário Cadastro -->
+    <div id="form-auth-cad" class="space-y-3 text-xs hidden">
+      <div>
+        <label class="block font-semibold mb-1 text-slate-600">Seu Nome / Nome da Empresa</label>
+        <input type="text" id="auth-nome-cad" class="w-full border rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: WM Pisos e Revestimentos">
+      </div>
+      <div>
+        <label class="block font-semibold mb-1 text-slate-600">E-mail</label>
+        <input type="email" id="auth-email-cad" class="w-full border rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block font-semibold mb-1 text-slate-600">Senha (Mínimo 6 caracteres)</label>
+        <input type="password" id="auth-senha-cad" class="w-full border rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <button onclick="executarCadastro()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow transition text-sm">
+        Criar Conta e Ativar 30 Dias
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTEÚDO PRINCIPAL DO APP -->
+  <main id="app-main-content" class="max-w-4xl mx-auto p-3 sm:p-5 space-y-6 hidden">
+    <div class="flex border-b border-slate-300 bg-white rounded-t-2xl overflow-hidden shadow-sm">
+      <button id="tab-btn-novo" onclick="mudarAba('novo')" class="flex-1 py-3 text-center font-bold text-sm border-b-2 border-blue-700 text-blue-700 bg-blue-50/60 transition">
+        <i class="fa-solid fa-plus-circle mr-1"></i> Novo Orçamento
+      </button>
+      <button id="tab-btn-lista" onclick="mudarAba('lista')" class="flex-1 py-3 text-center font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
+        <i class="fa-solid fa-folder-open mr-1"></i> Histórico
+      </button>
+    </div>
+
+    <!-- ABA 1: NOVO ORÇAMENTO -->
+    <section id="aba-novo" class="bg-white p-4 sm:p-6 rounded-b-2xl shadow-sm border border-slate-200 space-y-6">
+      <div class="space-y-3">
+        <h2 class="text-base font-bold text-slate-700 border-b pb-2 flex items-center gap-2">
+          <i class="fa-solid fa-address-card text-blue-600"></i> Dados do Cliente & Obra
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Nome do Cliente *</label>
+            <input type="text" id="cli-nome" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ex: Carlos Eduardo">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">WhatsApp do Cliente *</label>
+            <input type="tel" id="cli-whats" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ex: 51999999999">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Endereço da Obra</label>
+            <input type="text" id="cli-endereco" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ex: Av. Principal, 450 - Bairro Centro">
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div class="flex justify-between items-center border-b pb-2">
+          <h2 class="text-base font-bold text-slate-700 flex items-center gap-2">
+            <i class="fa-solid fa-screwdriver-wrench text-blue-600"></i> Serviços Incluídos
+          </h2>
+          <button onclick="adicionarServico()" class="bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow transition">
+            <i class="fa-solid fa-plus"></i> + Adicionar Serviço
+          </button>
+        </div>
+        <div id="container-servicos" class="space-y-4"></div>
+      </div>
+
+      <div class="space-y-3">
+        <h2 class="text-base font-bold text-slate-700 border-b pb-2 flex items-center gap-2">
+          <i class="fa-solid fa-file-contract text-blue-600"></i> Prazos, Pagamento e Garantia
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Prazo Estimado</label>
+            <input type="text" id="cond-prazo" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm" value="10 dias úteis">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Forma de Pagamento</label>
+            <input type="text" id="cond-pagto" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm" value="50% do valor como sinal">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Validade Orçamento</label>
+            <input type="text" id="cond-validade" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm" value="15 Dias">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-amber-700 mb-1">Tempo de Garantia</label>
+            <input type="text" id="cond-garantia" class="w-full border border-amber-300 bg-amber-50 rounded-xl p-2.5 text-sm font-bold text-amber-900" value="90 dias">
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 text-white p-4 sm:p-5 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 shadow-md">
+        <div>
+          <span class="text-xs text-slate-400 font-medium block">VALOR TOTAL DO ORÇAMENTO</span>
+          <span id="valor-total-geral" class="text-3xl font-extrabold text-amber-400">R$ 0,00</span>
+        </div>
+        <button onclick="salvarOrcamento()" class="w-full md:w-auto bg-green-600 hover:bg-green-500 text-white font-bold px-6 py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-sm">
+          <i class="fa-solid fa-floppy-disk"></i> Salvar e Gerar Orçamento
+        </button>
+      </div>
+    </section>
+
+    <!-- ABA 2: HISTÓRICO -->
+    <section id="aba-lista" class="bg-white p-4 sm:p-6 rounded-b-2xl shadow-sm border border-slate-200 hidden space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h2 class="text-base font-bold text-slate-700 flex items-center gap-2">
+          <i class="fa-solid fa-folder-open text-blue-600"></i> Meus Orçamentos
+        </h2>
+        <span id="qtd-orcamentos" class="text-xs font-bold bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full">0</span>
+      </div>
+      <div id="lista-orcamentos-container" class="space-y-3"></div>
+    </section>
+  </main>
+
+  <!-- MODAL PERFIL DA EMPRESA E ASSINATURA -->
+  <div id="modal-perfil" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-user-gear text-blue-700"></i> Perfil da Empresa
+        </h3>
+        <button onclick="toggleModalPerfil()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+      </div>
+
+      <div class="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+        <label class="block text-xs font-bold text-slate-700 uppercase">Logo da Empresa</label>
+        <div class="flex items-center gap-4">
+          <div id="preview-logo-box" class="w-16 h-16 rounded-xl border-2 border-dashed border-slate-300 bg-white flex items-center justify-center overflow-hidden">
+            <i id="preview-logo-icon" class="fa-solid fa-image text-slate-300 text-2xl"></i>
+            <img id="preview-logo-img" src="" alt="Preview" class="w-full h-full object-cover hidden">
+          </div>
+          <div class="flex-1 space-y-1">
+            <input type="file" id="input-logo-file" accept="image/*" onchange="carregarLogoEmBase64(event)" class="hidden">
+            <button onclick="document.getElementById('input-logo-file').click()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-semibold px-3 py-2 rounded-lg w-full transition">
+              <i class="fa-solid fa-upload"></i> Selecionar Imagem
+            </button>
+            <button id="btn-remover-logo" onclick="removerLogo()" class="text-xs text-red-600 hover:underline hidden">Remover Logo</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-bold text-slate-600 uppercase">Nome / Empresa *</label>
+          <input type="text" id="prof-nome" class="w-full border rounded-xl p-2.5 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase">WhatsApp Profissional</label>
+          <input type="tel" id="prof-whats" class="w-full border rounded-xl p-2.5 text-sm" placeholder="51999999999">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase">CPF ou CNPJ</label>
+          <input type="text" id="prof-doc" class="w-full border rounded-xl p-2.5 text-sm">
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-bold text-slate-600 uppercase">Chave Pix para Sinal</label>
+          <input type="text" id="prof-pix" class="w-full border rounded-xl p-2.5 text-sm">
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-bold text-slate-600 uppercase">Nome do Titular da Conta Pix</label>
+          <input type="text" id="prof-pix-titular" class="w-full border rounded-xl p-2.5 text-sm" placeholder="Ex: João da Silva / Banco X">
+        </div>
+      </div>
+
+      <div class="space-y-2 border-t pt-3">
+        <h4 class="text-xs font-bold text-slate-700 uppercase">Valores Padrão de Mão de Obra (R$)</h4>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500">Por Metro (m²)</label>
+            <input type="number" id="prof-padrao-m2" class="w-full border rounded-xl p-2 text-sm" placeholder="0.00">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500">Por Ponto</label>
+            <input type="number" id="prof-padrao-ponto" class="w-full border rounded-xl p-2 text-sm" placeholder="0.00">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500">Por Diária</label>
+            <input type="number" id="prof-padrao-diaria" class="w-full border rounded-xl p-2 text-sm" placeholder="0.00">
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTÃO DE SALVAR ALTERAÇÕES DA EMPRESA -->
+      <button onclick="salvarPerfil()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl shadow transition text-sm">
+        Salvar Alterações
+      </button>
+
+      <!-- BLOCO DE RENOVAÇÃO DA ASSINATURA -->
+      <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 flex justify-between items-center mt-3">
+        <div>
+          <span class="block text-xs font-bold text-amber-900">Plano OrçaObra Pro</span>
+          <span id="perfil-dias-restantes" class="text-[11px] text-amber-700">Carregando...</span>
+        </div>
+        <a href="https://pay.kirvano.com/3374c0d4-8919-435f-8a41-18c236bfe6ac" target="_blank" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs px-3 py-2 rounded-lg shadow transition flex items-center gap-1">
+          <i class="fa-solid fa-arrows-rotate"></i> Renovar (R$ 19,90)
+        </a>
+      </div>
+
+      <!-- BOTÃO: SUPORTE VIA WHATSAPP (GANA) -->
+      <div class="pt-2 text-center">
+        <a href="https://api.whatsapp.com/send?phone=233505417501&text=Olá! Preciso de suporte com o aplicativo OrçaObra Pro." target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition text-[11px] font-semibold shadow-sm">
+          <i class="fa-brands fa-whatsapp text-xs"></i> Suporte via WhatsApp
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: EDIÇÃO DO CONTRATO -->
+  <div id="modal-editar-contrato" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-file-signature text-blue-700"></i> Revisar e Personalizar Contrato
+        </h3>
+        <button onclick="fecharModalContrato()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <p class="text-slate-500">Ajuste as cláusulas abaixo antes de gerar o PDF do contrato.</p>
+        <input type="hidden" id="edit-ctr-id">
+
+        <div>
+          <label class="block font-bold text-slate-700 uppercase mb-1">Cláusula 1 - Objeto e Serviços</label>
+          <textarea id="edit-ctr-c1" rows="3" class="w-full border rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 uppercase mb-1">Cláusula 2 - Materiais</label>
+          <textarea id="edit-ctr-c2" rows="3" class="w-full border rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 uppercase mb-1">Cláusula 3 - Prazos</label>
+          <textarea id="edit-ctr-c3" rows="2" class="w-full border rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 uppercase mb-1">Cláusula 4 - Valores e Pagamento</label>
+          <textarea id="edit-ctr-c4" rows="2" class="w-full border rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+        </div>
+        
+        <div>
+          <label class="block font-bold text-slate-700 uppercase mb-1">Cláusula 5 - Disposições Especiais</label>
+          <textarea id="edit-ctr-extras" rows="2" class="w-full border rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+        </div>
+
+        <!-- CONTAINER PARA CLÁUSULAS DINÂMICAS -->
+        <div id="container-clausulas-dinamicas" class="space-y-3 border-t border-dashed pt-3 mt-3"></div>
+        
+        <button onclick="adicionarClausulaDinamica()" class="bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold py-2 px-3 rounded-lg text-xs transition border border-blue-200">
+          <i class="fa-solid fa-plus"></i> Adicionar Nova Cláusula
+        </button>
+      </div>
+
+      <div class="flex gap-2 border-t pt-3">
+        <button onclick="fecharModalContrato()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl text-xs transition">
+          Cancelar
+        </button>
+        <button onclick="confirmarEGerarPDFContrato()" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2.5 rounded-xl shadow text-xs transition flex items-center justify-center gap-1">
+          <i class="fa-solid fa-file-pdf"></i> Baixar PDF do Contrato
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEMPLATE OCULTO PDF - ORÇAMENTO -->
+  <div class="hidden">
+    <div id="pdf-template" class="pdf-page-container p-5 text-slate-800 space-y-3 text-[11px]">
+      <div class="border-b-2 border-blue-800 pb-2 flex justify-between items-start">
+        <div class="space-y-1 max-w-[420px]">
+          <div id="pdf-logo-container" class="hidden">
+            <img id="pdf-logo-img" src="" alt="Logo" class="max-h-12 max-w-[150px] object-contain mb-1">
+          </div>
+          <div>
+            <h1 id="pdf-prof-nome" class="text-lg font-bold text-blue-900 leading-tight">Nome da Empresa</h1>
+            <p id="pdf-prof-doc" class="text-[10px] text-slate-500">CPF/CNPJ: 000.000.000-00</p>
+            <p id="pdf-prof-whats" class="text-[10px] text-slate-500">WhatsApp: (00) 00000-0000</p>
+          </div>
+        </div>
+        <div class="text-right">
+          <span class="inline-block bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full text-[9px] uppercase">Orçamento Profissional</span>
+          <p id="pdf-data" class="text-[10px] text-slate-500 mt-1">Data: 00/00/0000</p>
+        </div>
+      </div>
+      
+      <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+        <h2 class="font-bold text-slate-700 mb-0.5 border-b pb-0.5 text-[10px] uppercase tracking-wider">Dados do Cliente</h2>
+        <p><strong>Cliente:</strong> <span id="pdf-cli-nome"></span> | <strong>WhatsApp:</strong> <span id="pdf-cli-whats"></span></p>
+        <p><strong>Endereço da Obra:</strong> <span id="pdf-cli-endereco"></span></p>
+      </div>
+
+      <div>
+        <h2 class="font-bold text-slate-700 mb-1 border-b pb-0.5 text-[10px] uppercase tracking-wider">Serviços e Materiais</h2>
+        <table class="w-full border-collapse">
+          <thead>
+            <tr class="bg-slate-100 border-b text-left text-[10px] uppercase">
+              <th class="p-1">Especialidade / Detalhes</th>
+              <th class="p-1">Métrica</th>
+              <th class="p-1 text-right">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody id="pdf-tbody-servicos"></tbody>
+        </table>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-[10px] space-y-0.5">
+          <p><strong>Prazo Estimado:</strong> <span id="pdf-cond-prazo"></span></p>
+          <p><strong>Forma de Pagamento:</strong> <span id="pdf-cond-pagto"></span></p>
+          <p><strong>Validade do Orçamento:</strong> <span id="pdf-cond-validade"></span></p>
+          <p><strong>Chave Pix:</strong> <span id="pdf-prof-pix"></span> (<span id="pdf-prof-pix-titular"></span>)</p>
+        </div>
+        <div class="bg-blue-50 p-2 rounded-lg border border-blue-200 flex flex-col justify-center text-right">
+          <span class="text-[9px] text-blue-800 font-bold uppercase">VALOR TOTAL DO ORÇAMENTO</span>
+          <span id="pdf-valor-final" class="text-xl font-black text-blue-900">R$ 0,00</span>
+        </div>
+      </div>
+
+      <div id="pdf-footer-garantia" class="border-t pt-1.5 text-center text-[8px] text-slate-400">
+        Garantia de 90 dias para serviços executados. Este documento é uma estimativa formal de custos.
+      </div>
+    </div>
+  </div>
+
+  <!-- TEMPLATE OCULTO PDF - CONTRATO -->
+  <div class="hidden">
+    <div id="contrato-template" class="pdf-page-container p-5 text-slate-900 space-y-3 text-[10px] leading-snug">
+      <div class="text-center border-b-2 border-slate-800 pb-1.5">
+        <div id="contrato-logo-container" class="hidden mb-1">
+          <img id="contrato-logo-img" src="" alt="Logo" class="max-h-12 mx-auto object-contain">
+        </div>
+        <h1 class="text-xs font-black uppercase text-slate-900 tracking-wide">CONTRATO DE EXECUÇÃO DE PRESTAÇÃO DE SERVIÇOS DE OBRA</h1>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2 rounded-lg border border-slate-300">
+        <div>
+          <h2 class="font-bold text-slate-800 uppercase border-b pb-0.5 text-[9px]">CONTRATADA (Prestador)</h2>
+          <p><strong>Empresa/Nome:</strong> <span id="ctr-prof-nome"></span></p>
+          <p><strong>CPF/CNPJ:</strong> <span id="ctr-prof-doc"></span> | <strong>Whats:</strong> <span id="ctr-prof-whats"></span></p>
+        </div>
+        <div>
+          <h2 class="font-bold text-slate-800 uppercase border-b pb-0.5 text-[9px]">CONTRATANTE (Cliente)</h2>
+          <p><strong>Cliente:</strong> <span id="ctr-cli-nome"></span> | <strong>Whats:</strong> <span id="ctr-cli-whats"></span></p>
+          <p><strong>Endereço:</strong> <span id="ctr-cli-endereco"></span></p>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-slate-900 uppercase text-[9px] border-b pb-0.5 mb-0.5">CLÁUSULA 1 – DO OBJETO E SERVIÇOS PRESTADOS</h3>
+        <p id="out-ctr-c1" class="whitespace-pre-line"></p>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-slate-900 uppercase text-[9px] border-b pb-0.5 mb-0.5">CLÁUSULA 2 – DA RESPONSABILIDADE DOS MATERIAIS</h3>
+        <p id="out-ctr-c2" class="whitespace-pre-line"></p>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-slate-900 uppercase text-[9px] border-b pb-0.5 mb-0.5">CLÁUSULA 3 – DOS PRAZOS</h3>
+        <p id="out-ctr-c3" class="whitespace-pre-line"></p>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-slate-900 uppercase text-[9px] border-b pb-0.5 mb-0.5">CLÁUSULA 4 – VALORES E FLUXO FINANCEIRO</h3>
+        <p id="out-ctr-c4" class="whitespace-pre-line mb-1"></p>
+        <p class="bg-slate-50 p-1 rounded border border-slate-200"><strong>Pagamento via Pix:</strong> Chave <strong id="ctr-pix"></strong> | Titular: <strong id="ctr-pix-titular"></strong></p>
+      </div>
+
+      <div id="ctr-box-extras" class="hidden">
+        <h3 class="font-bold text-slate-900 uppercase text-[9px] border-b pb-0.5 mb-0.5">CLÁUSULA 5 – DISPOSIÇÕES ESPECIAIS</h3>
+        <p id="out-ctr-extras" class="whitespace-pre-line"></p>
+      </div>
+
+      <!-- CONTAINER ONDE ENTRARÃO AS CLÁUSULAS DINÂMICAS GERADAS NO JAVASCRIPT -->
+      <div id="ctr-dynamic-clauses"></div>
+
+      <div class="mt-2">
+        <h3 class="font-bold text-slate-900 uppercase text-[9px] border-b pb-0.5 mb-0.5">CLÁUSULA DE GARANTIA E COMUNICAÇÃO</h3>
+        <p id="out-ctr-garantia"></p>
+      </div>
+
+      <div class="pt-3 avoid-break">
+        <p class="text-center font-medium mb-4">E, por estarem assim justos e contratados, firmam o presente instrumento.</p>
+        <div class="grid grid-cols-2 gap-6 text-center pt-2">
+          <div class="border-t border-slate-800 pt-0.5">
+            <p class="font-bold"><span id="ctr-ass-cli"></span></p>
+            <p class="text-[8px] text-slate-500">CONTRATANTE (Cliente)</p>
+          </div>
+          <div class="border-t border-slate-800 pt-0.5">
+            <p class="font-bold"><span id="ctr-ass-prof"></span></p>
+            <p class="text-[8px] text-slate-500">CONTRATADA (Prestador)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIREBASE E SCRIPTS PRINCIPAIS -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBRXWhnlI3D34ctsDRNn03e_JWFtAiR7oc",
+      authDomain: "orcaora-pro.firebaseapp.com",
+      projectId: "orcaora-pro",
+      storageBucket: "orcaora-pro.firebasestorage.app",
+      messagingSenderId: "446382097009",
+      appId: "1:446382097009:web:2cc1f8e74bb0101ba411d0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let usuarioAtual = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        usuarioAtual = user;
+        document.getElementById('screen-auth').classList.add('hidden');
+        document.getElementById('app-main-content').classList.remove('hidden');
+        document.getElementById('btn-perfil').classList.remove('hidden');
+        document.getElementById('btn-logout').classList.remove('hidden');
+
+        await verificarAssinaturaUsuario(user.uid);
+        inicializarAppGeral();
+      } else {
+        usuarioAtual = null;
+        document.getElementById('screen-auth').classList.remove('hidden');
+        document.getElementById('app-main-content').classList.add('hidden');
+        document.getElementById('btn-perfil').classList.add('hidden');
+        document.getElementById('btn-logout').classList.add('hidden');
+        document.getElementById('user-status-badge').innerText = '';
+        document.getElementById('banner-assinatura-bloqueada').classList.add('hidden');
+      }
+    });
+
+    window.executarCadastro = async function() {
+      const nome = document.getElementById('auth-nome-cad').value;
+      const email = document.getElementById('auth-email-cad').value;
+      const senha = document.getElementById('auth-senha-cad').value;
+
+      if (!nome || !email || !senha) {
+        alert("Preencha todos os campos para se cadastrar.");
+        return;
+      }
+
+      try {
+        const res = await createUserWithEmailAndPassword(auth, email, senha);
+        const uid = res.user.uid;
+
+        const dataExp = new Date();
+        dataExp.setDate(dataExp.getDate() + 30);
+
+        await setDoc(doc(db, "usuarios", uid), {
+          nome: nome,
+          email: email,
+          dataExpiracao: dataExp.toISOString(),
+          status: "ativo"
+        });
+
+        alert("Conta ativada com sucesso! Você tem 30 dias de acesso completo.");
+      } catch (err) {
+        if (err.code === 'auth/email-already-in-use') {
+          alert("Este e-mail já está cadastrado! Alterne para a aba 'Entrar' e faça login.");
+        } else {
+          alert("Erro ao criar conta: " + err.message);
+        }
+      }
+    };
+
+    window.executarLogin = async function() {
+      const email = document.getElementById('auth-email-login').value;
+      const senha = document.getElementById('auth-senha-login').value;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, senha);
+      } catch (err) {
+        alert("Erro ao entrar: E-mail ou senha inválidos.");
+      }
+    };
+
+    window.fazerLogout = function() {
+      signOut(auth);
+    };
+
+    async function verificarAssinaturaUsuario(uid) {
+      document.getElementById('banner-assinatura-bloqueada').classList.add('hidden');
+      
+      try {
+        const docRef = doc(db, "usuarios", uid);
+        const docSnap = await getDoc(docRef);
+
+        let dataExp;
+
+        if (docSnap.exists()) {
+          const dados = docSnap.data();
+          if (dados.dataExpiracao) {
+            dataExp = typeof dados.dataExpiracao.toDate === 'function' 
+              ? dados.dataExpiracao.toDate() 
+              : new Date(dados.dataExpiracao);
+          }
+        }
+
+        if (!dataExp || isNaN(dataExp.getTime())) {
+          dataExp = new Date();
+          dataExp.setDate(dataExp.getDate() + 30);
+          await setDoc(docRef, {
+            nome: auth.currentUser.displayName || "Usuário",
+            email: auth.currentUser.email,
+            dataExpiracao: dataExp.toISOString(),
+            status: "ativo"
+          }, { merge: true });
+        }
+
+        const hoje = new Date();
+        dataExp.setHours(23, 59, 59, 999);
+        hoje.setHours(0, 0, 0, 0);
+
+        if (hoje <= dataExp) {
+          const diasRestantes = Math.ceil((dataExp - hoje) / (1000 * 60 * 60 * 24));
+          document.getElementById('user-status-badge').innerText = `Acesso Ativo (${diasRestantes} dias)`;
+          document.getElementById('perfil-dias-restantes').innerText = `${diasRestantes} dias restantes`;
+          document.getElementById('banner-assinatura-bloqueada').classList.add('hidden');
+        } else {
+          document.getElementById('user-status-badge').innerText = "Acesso Expirado";
+          document.getElementById('perfil-dias-restantes').innerText = "Licença Expirada";
+          document.getElementById('banner-assinatura-bloqueada').classList.remove('hidden');
+        }
+      } catch (err) {
+        console.log("Erro ao checar assinatura:", err);
+      }
+    }
+
+    window.mudarAbaAuth = function(aba) {
+      if (aba === 'login') {
+        document.getElementById('form-auth-login').classList.remove('hidden');
+        document.getElementById('form-auth-cad').classList.add('hidden');
+        document.getElementById('tab-auth-login').className = "flex-1 py-2 border-b-2 border-blue-800 text-blue-800";
+        document.getElementById('tab-auth-cad').className = "flex-1 py-2 border-b-2 border-transparent text-slate-400";
+      } else {
+        document.getElementById('form-auth-cad').classList.remove('hidden');
+        document.getElementById('form-auth-login').classList.add('hidden');
+        document.getElementById('tab-auth-cad').className = "flex-1 py-2 border-b-2 border-blue-800 text-blue-800";
+        document.getElementById('tab-auth-login').className = "flex-1 py-2 border-b-2 border-transparent text-slate-400";
+      }
+    };
+  </script>
+
+  <!-- LÓGICA DO APLICATIVO -->
+  <script>
+    let perfil = JSON.parse(localStorage.getItem('orca_perfil_v2')) || {
+      nome: 'Sua Empresa / Nome',
+      whats: '',
+      doc: '',
+      pix: '',
+      pixTitular: '',
+      logo: '',
+      m2: 30,
+      ponto: 50,
+      diaria: 250
+    };
+
+    let orcamentos = JSON.parse(localStorage.getItem('orca_lista_v2')) || [];
+    let servicosContador = 0;
+    let clausulaDinamicaCount = 0;
+    let deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('btn-install-pwa').classList.remove('hidden');
+    });
+
+    function instalarPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+          document.getElementById('btn-install-pwa').classList.add('hidden');
+          deferredPrompt = null;
+        });
+      }
+    }
+
+    function inicializarAppGeral() {
+      atualizarCabecalhoEmpresa();
+      carregarPerfilForm();
+      if(document.querySelectorAll('[id^="card-servico-"]').length === 0) {
+        adicionarServico();
+      }
+      renderizarListaOrcamentos();
+    }
+
+    function toggleModalPerfil() {
+      document.getElementById('modal-perfil').classList.toggle('hidden');
+    }
+
+    function fecharModalContrato() {
+      document.getElementById('modal-editar-contrato').classList.add('hidden');
+    }
+
+    function atualizarCabecalhoEmpresa() {
+      const headerLogoBox = document.getElementById('header-logo-container');
+      const headerLogoImg = document.getElementById('header-logo-img');
+
+      if(perfil.logo) {
+        headerLogoImg.src = perfil.logo;
+        headerLogoBox.classList.remove('hidden');
+      } else {
+        headerLogoBox.classList.add('hidden');
+      }
+    }
+
+    function carregarPerfilForm() {
+      document.getElementById('prof-nome').value = perfil.nome || '';
+      document.getElementById('prof-whats').value = perfil.whats || '';
+      document.getElementById('prof-doc').value = perfil.doc || '';
+      document.getElementById('prof-pix').value = perfil.pix || '';
+      document.getElementById('prof-pix-titular').value = perfil.pixTitular || '';
+      document.getElementById('prof-padrao-m2').value = perfil.m2 || '';
+      document.getElementById('prof-padrao-ponto').value = perfil.ponto || '';
+      document.getElementById('prof-padrao-diaria').value = perfil.diaria || '';
+
+      if(perfil.logo) {
+        document.getElementById('preview-logo-img').src = perfil.logo;
+        document.getElementById('preview-logo-img').classList.remove('hidden');
+        document.getElementById('preview-logo-icon').classList.add('hidden');
+        document.getElementById('btn-remover-logo').classList.remove('hidden');
+      }
+    }
+
+    function carregarLogoEmBase64(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          perfil.logo = e.target.result;
+          document.getElementById('preview-logo-img').src = perfil.logo;
+          document.getElementById('preview-logo-img').classList.remove('hidden');
+          document.getElementById('preview-logo-icon').classList.add('hidden');
+          document.getElementById('btn-remover-logo').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function removerLogo() {
+      perfil.logo = '';
+      document.getElementById('preview-logo-img').src = '';
+      document.getElementById('preview-logo-img').classList.add('hidden');
+      document.getElementById('preview-logo-icon').classList.remove('hidden');
+      document.getElementById('btn-remover-logo').classList.add('hidden');
+      document.getElementById('input-logo-file').value = '';
+    }
+
+    function salvarPerfil() {
+      perfil.nome = document.getElementById('prof-nome').value;
+      perfil.whats = document.getElementById('prof-whats').value;
+      perfil.doc = document.getElementById('prof-doc').value;
+      perfil.pix = document.getElementById('prof-pix').value;
+      perfil.pixTitular = document.getElementById('prof-pix-titular').value;
+      perfil.m2 = parseFloat(document.getElementById('prof-padrao-m2').value) || 0;
+      perfil.ponto = parseFloat(document.getElementById('prof-padrao-ponto').value) || 0;
+      perfil.diaria = parseFloat(document.getElementById('prof-padrao-diaria').value) || 0;
+
+      localStorage.setItem('orca_perfil_v2', JSON.stringify(perfil));
+      atualizarCabecalhoEmpresa();
+      toggleModalPerfil();
+      alert('Perfil atualizado com sucesso!');
+    }
+
+    function mudarAba(aba) {
+      const btnNovo = document.getElementById('tab-btn-novo');
+      const btnLista = document.getElementById('tab-btn-lista');
+      const abaNovo = document.getElementById('aba-novo');
+      const abaLista = document.getElementById('aba-lista');
+
+      if(aba === 'novo') {
+        btnNovo.className = "flex-1 py-3 text-center font-bold text-sm border-b-2 border-blue-700 text-blue-700 bg-blue-50/60 transition";
+        btnLista.className = "flex-1 py-3 text-center font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
+        abaNovo.classList.remove('hidden');
+        abaLista.classList.add('hidden');
+      } else {
+        btnLista.className = "flex-1 py-3 text-center font-bold text-sm border-b-2 border-blue-700 text-blue-700 bg-blue-50/60 transition";
+        btnNovo.className = "flex-1 py-3 text-center font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
+        abaLista.classList.remove('hidden');
+        abaNovo.classList.add('hidden');
+        renderizarListaOrcamentos();
+      }
+    }
+
+    function adicionarServico() {
+      servicosContador++;
+      const id = servicosContador;
+      const container = document.getElementById('container-servicos');
+
+      const card = document.createElement('div');
+      card.id = `card-servico-${id}`;
+      card.className = "bg-slate-50 p-4 rounded-xl border border-slate-300 relative space-y-3 shadow-sm";
+
+      card.innerHTML = `
+        <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+          <span class="text-xs font-bold text-blue-800 uppercase tracking-wide">Item #${id}</span>
+          <button onclick="removerServico(${id})" class="text-xs text-red-600 hover:text-red-800 font-semibold"><i class="fa-solid fa-trash mr-1"></i> Remover Item</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Especialidade / Serviço</label>
+            <select id="serv-tipo-${id}" class="w-full border rounded-xl p-2.5 text-sm bg-white">
+              <option value="Azulejista / Piso">Azulejista / Piso</option>
+              <option value="Pintura">Pintura</option>
+              <option value="Gesso / Drywall">Gesso / Drywall</option>
+              <option value="Eletricidade">Eletricidade</option>
+              <option value="Hidráulica">Hidráulica</option>
+              <option value="Pedreiro / Alvenaria">Pedreiro / Alvenaria</option>
+              <option value="Outros Serviços">Outros Serviços</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo de Cobrança</label>
+            <select id="serv-cobranca-${id}" onchange="alternarCamposCobranca(${id})" class="w-full border rounded-xl p-2.5 text-sm bg-white font-medium text-blue-900">
+              <option value="m2">Por Metro Quadrado (m²)</option>
+              <option value="ponto">Por Ponto / Instalação</option>
+              <option value="diaria">Por Diária</option>
+              <option value="empreita">Por Empreita (Valor Fechado)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Fornecimento de Material</label>
+            <select id="serv-mat-tipo-${id}" onchange="alternarCaixaMaterial(${id})" class="w-full border rounded-xl p-2.5 text-sm bg-white">
+              <option value="Somente Mão de Obra">Somente Mão de Obra</option>
+              <option value="Mão de Obra + Material">Mão de Obra + Material</option>
+              <option value="Mão de Obra + Lista para o cliente">Mão de Obra + Lista para o cliente</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 bg-white p-3 rounded-xl border border-slate-200">
+          <div>
+            <label id="lbl-qtd-${id}" class="block text-xs font-semibold text-slate-600 mb-1">Metragem Total (m²)</label>
+            <input type="number" id="serv-qtd-${id}" oninput="calcularTotalGeral()" inputmode="decimal" class="w-full border rounded-lg p-2 text-sm bg-slate-50" placeholder="Ex: 50">
+          </div>
+          <div>
+            <label id="lbl-val-${id}" class="block text-xs font-semibold text-slate-600 mb-1">Valor Unitário (R$)</label>
+            <input type="number" id="serv-val-unit-${id}" oninput="calcularTotalGeral()" inputmode="decimal" class="w-full border rounded-lg p-2 text-sm bg-slate-50" value="${perfil.m2 || ''}">
+          </div>
+          <div class="col-span-2 md:col-span-1">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Subtotal Mão de Obra</label>
+            <input type="text" id="serv-subtotal-${id}" readonly class="w-full border rounded-lg p-2 text-sm bg-slate-100 font-bold text-slate-800" value="R$ 0,00">
+          </div>
+        </div>
+        <div id="box-mat-detalhes-${id}" class="hidden">
+          <label id="lbl-mat-detalhes-${id}" class="block text-xs font-bold text-slate-700 mb-1">Quais materiais serão fornecidos pelo cliente?</label>
+          <textarea id="serv-mat-lista-${id}" rows="2" class="w-full border rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ex: 10 sacos de argamassa AC3, 45m² de piso porcelanato, 2 quilos de rejunte..."></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Descrição / Observações deste Serviço</label>
+          <input type="text" id="serv-obs-${id}" class="w-full border rounded-xl p-2 text-xs" placeholder="Ex: Assentamento com nivelador de piso, junta de 2mm.">
+        </div>
+      `;
+
+      container.prepend(card);
+      alternarCamposCobranca(id);
+      calcularTotalGeral();
+    }
+
+    function removerServico(id) {
+      const card = document.getElementById(`card-servico-${id}`);
+      if(card) {
+        card.remove();
+        calcularTotalGeral();
+      }
+    }
+
+    function alternarCamposCobranca(id) {
+      const tipoCobranca = document.getElementById(`serv-cobranca-${id}`).value;
+      const lblQtd = document.getElementById(`lbl-qtd-${id}`);
+      const lblVal = document.getElementById(`lbl-val-${id}`);
+      const inputVal = document.getElementById(`serv-val-unit-${id}`);
+
+      if(tipoCobranca === 'm2') {
+        lblQtd.innerText = "Metragem Total (m²)";
+        lblVal.innerText = "Valor por m² (R$)";
+        inputVal.value = perfil.m2 || '';
+      } else if(tipoCobranca === 'ponto') {
+        lblQtd.innerText = "Qtd. de Pontos / Instalações";
+        lblVal.innerText = "Valor por Ponto (R$)";
+        inputVal.value = perfil.ponto || '';
+      } else if(tipoCobranca === 'diaria') {
+        lblQtd.innerText = "Qtd. de Diárias";
+        lblVal.innerText = "Valor da Diária (R$)";
+        inputVal.value = perfil.diaria || '';
+      } else if(tipoCobranca === 'empreita') {
+        lblQtd.innerText = "Qtd. (Geralmente 1)";
+        lblVal.innerText = "Valor da Empreita (R$)";
+        // Preenche com 1 automaticamente para facilitar a vida do prestador
+        if (!document.getElementById(`serv-qtd-${id}`).value) {
+          document.getElementById(`serv-qtd-${id}`).value = 1;
+        }
+        inputVal.value = ''; 
+      }
+      calcularTotalGeral();
+    }
+
+    function alternarCaixaMaterial(id) {
+      const tipoMat = document.getElementById(`serv-mat-tipo-${id}`).value;
+      const boxMat = document.getElementById(`box-mat-detalhes-${id}`);
+      const lblMat = document.getElementById(`lbl-mat-detalhes-${id}`);
+
+      if(tipoMat === 'Somente Mão de Obra') {
+        boxMat.classList.remove('hidden');
+        lblMat.innerText = "Quais materiais serão fornecidos pelo cliente?";
+      } else if(tipoMat === 'Mão de Obra + Material') {
+        boxMat.classList.remove('hidden');
+        lblMat.innerText = "Quais materiais estão inclusos (fornecidos pelo prestador)?";
+      } else if(tipoMat === 'Mão de Obra + Lista para o cliente') {
+        boxMat.classList.remove('hidden');
+        lblMat.innerText = "Lista de materiais para o cliente comprar:";
+      } else {
+        boxMat.classList.add('hidden');
+      }
+    }
+
+    // CLÁUSULAS DINÂMICAS NO CONTRATO
+    function adicionarClausulaDinamica() {
+      clausulaDinamicaCount++;
+      const container = document.getElementById('container-clausulas-dinamicas');
+      const div = document.createElement('div');
+      div.id = `box-clausula-din-${clausulaDinamicaCount}`;
+      div.className = "space-y-1 bg-slate-50 p-2 rounded border border-slate-200";
+      
+      div.innerHTML = `
+        <div class="flex justify-between items-center mb-1">
+          <label class="block font-bold text-slate-700 uppercase text-[10px]">Cláusula Extra Adicional</label>
+          <button onclick="removerClausulaDinamica(${clausulaDinamicaCount})" class="text-red-500 hover:text-red-700 text-[10px] font-bold"><i class="fa-solid fa-trash"></i> Remover</button>
+        </div>
+        <textarea id="edit-ctr-dinamica-${clausulaDinamicaCount}" rows="2" class="w-full border rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Digite o título e o texto da cláusula..."></textarea>
+      `;
+      container.appendChild(div);
+    }
+
+    function removerClausulaDinamica(id) {
+      const box = document.getElementById(`box-clausula-din-${id}`);
+      if (box) box.remove();
+    }
+
+    function calcularTotalGeral() {
+      let totalGeral = 0;
+      const cards = document.querySelectorAll('[id^="card-servico-"]');
+
+      cards.forEach(card => {
+        const id = card.id.replace('card-servico-', '');
+        const qtd = parseFloat(document.getElementById(`serv-qtd-${id}`).value) || 0;
+        const valUnit = parseFloat(document.getElementById(`serv-val-unit-${id}`).value) || 0;
+        const subtotal = qtd * valUnit;
+
+        document.getElementById(`serv-subtotal-${id}`).value = subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        totalGeral += subtotal;
+      });
+
+      document.getElementById('valor-total-geral').innerText = totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      return totalGeral;
+    }
+
+    function salvarOrcamento() {
+      const cliNome = document.getElementById('cli-nome').value;
+      if(!cliNome) {
+        alert('Por favor, digite o nome do cliente.');
+        return;
+      }
+
+      const listaServicos = [];
+      const cards = document.querySelectorAll('[id^="card-servico-"]');
+
+      cards.forEach(card => {
+        const id = card.id.replace('card-servico-', '');
+        const qtd = parseFloat(document.getElementById(`serv-qtd-${id}`).value) || 0;
+        const valUnit = parseFloat(document.getElementById(`serv-val-unit-${id}`).value) || 0;
+        const subtotal = qtd * valUnit;
+
+        listaServicos.push({
+          tipo: document.getElementById(`serv-tipo-${id}`).value,
+          cobranca: document.getElementById(`serv-cobranca-${id}`).value,
+          materialTipo: document.getElementById(`serv-mat-tipo-${id}`).value,
+          materialLista: document.getElementById(`serv-mat-lista-${id}`).value || '',
+          qtd: qtd,
+          valUnit: valUnit,
+          subtotal: subtotal,
+          obs: document.getElementById(`serv-obs-${id}`).value || ''
+        });
+      });
+
+      const novoOrcamento = {
+        id: Date.now(),
+        data: new Date().toLocaleDateString('pt-BR'),
+        cliente: {
+          nome: cliNome,
+          whats: document.getElementById('cli-whats').value,
+          endereco: document.getElementById('cli-endereco').value
+        },
+        servicos: listaServicos,
+        condicoes: {
+          prazo: document.getElementById('cond-prazo').value,
+          pagto: document.getElementById('cond-pagto').value,
+          validade: document.getElementById('cond-validade').value,
+          garantia: document.getElementById('cond-garantia').value // SALVA A GARANTIA
+        },
+        totalGeral: calcularTotalGeral(),
+        status: 'Pendente'
+      };
+
+      orcamentos.unshift(novoOrcamento);
+      localStorage.setItem('orca_lista_v2', JSON.stringify(orcamentos));
+      
+      limparFormulario();
+      mudarAba('lista');
+    }
+
+    function limparFormulario() {
+      document.getElementById('cli-nome').value = '';
+      document.getElementById('cli-whats').value = '';
+      document.getElementById('cli-endereco').value = '';
+      document.getElementById('cond-garantia').value = '90 dias'; // RESETA PRA 90 DIAS
+      document.getElementById('container-servicos').innerHTML = '';
+      servicosContador = 0;
+      adicionarServico();
+    }
+
+    function renderizarListaOrcamentos() {
+      const container = document.getElementById('lista-orcamentos-container');
+      document.getElementById('qtd-orcamentos').innerText = orcamentos.length;
+
+      if(orcamentos.length === 0) {
+        container.innerHTML = `<p class="text-center text-slate-400 py-8 text-sm">Nenhum orçamento cadastrado ainda.</p>`;
+        return;
+      }
+
+      container.innerHTML = orcamentos.map(item => {
+        const statusColors = {
+          'Pendente': 'bg-amber-100 text-amber-900 border-amber-300',
+          'Aprovado': 'bg-green-100 text-green-900 border-green-300',
+          'Recusado': 'bg-red-100 text-red-900 border-red-300',
+          'Concluído': 'bg-blue-100 text-blue-900 border-blue-300'
+        };
+
+        const resumoServicos = item.servicos.map(s => s.tipo).join(', ');
+
+        return `
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-800 text-sm">${item.cliente.nome}</span>
+                <span class="text-xs text-slate-400">#${item.data}</span>
+              </div>
+              <p class="text-xs text-slate-600"><strong>Serviços:</strong> ${resumoServicos}</p>
+              <p class="text-xs font-bold text-blue-900">Total: ${item.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+              
+              <div class="flex items-center gap-2 mt-2">
+                <label class="text-xs font-semibold text-slate-500">Status:</label>
+                <select onchange="atualizarStatus(${item.id}, this.value)" class="text-xs font-bold border rounded-lg px-2 py-1 ${statusColors[item.status]}">
+                  <option value="Pendente" ${item.status === 'Pendente' ? 'selected' : ''}>🟡 Pendente</option>
+                  <option value="Aprovado" ${item.status === 'Aprovado' ? 'selected' : ''}>🟢 Aprovado</option>
+                  <option value="Recusado" ${item.status === 'Recusado' ? 'selected' : ''}>🔴 Recusado</option>
+                  <option value="Concluído" ${item.status === 'Concluído' ? 'selected' : ''}>🔵 Concluído</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-2 md:pt-0 flex-wrap">
+              <button onclick="gerarPDF(${item.id})" class="bg-slate-800 hover:bg-black text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 shadow">
+                <i class="fa-solid fa-file-pdf text-red-400"></i> Orçamento
+              </button>
+              ${item.status === 'Aprovado' ? `
+                <button onclick="abrirModalEditarContrato(${item.id})" class="bg-blue-800 hover:bg-blue-900 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 shadow">
+                  <i class="fa-solid fa-file-contract text-amber-300"></i> Contrato
+                </button>
+              ` : ''}
+              <button onclick="enviarWhatsApp(${item.id})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 shadow">
+                <i class="fa-brands fa-whatsapp"></i> Whats
+              </button>
+              <button onclick="excluirOrcamento(${item.id})" class="text-slate-400 hover:text-red-600 p-2 text-xs">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function atualizarStatus(id, novoStatus) {
+      orcamentos = orcamentos.map(item => {
+        if(item.id === id) item.status = novoStatus;
+        return item;
+      });
+      localStorage.setItem('orca_lista_v2', JSON.stringify(orcamentos));
+      renderizarListaOrcamentos();
+    }
+
+    function excluirOrcamento(id) {
+      if(confirm('Tem certeza que deseja excluir este orçamento?')) {
+        orcamentos = orcamentos.filter(item => item.id !== id);
+        localStorage.setItem('orca_lista_v2', JSON.stringify(orcamentos));
+        renderizarListaOrcamentos();
+      }
+    }
+
+    function popularTemplatePDF(orcamento) {
+      const pdfLogoBox = document.getElementById('pdf-logo-container');
+      const pdfLogoImg = document.getElementById('pdf-logo-img');
+      if(perfil.logo) {
+        pdfLogoImg.src = perfil.logo;
+        pdfLogoBox.classList.remove('hidden');
+      } else {
+        pdfLogoBox.classList.add('hidden');
+      }
+
+      document.getElementById('pdf-prof-nome').innerText = perfil.nome || 'Prestador de Serviço';
+      document.getElementById('pdf-prof-doc').innerText = perfil.doc ? `CPF/CNPJ: ${perfil.doc}` : '';
+      document.getElementById('pdf-prof-whats').innerText = perfil.whats ? `WhatsApp: ${perfil.whats}` : '';
+      document.getElementById('pdf-prof-pix').innerText = perfil.pix || 'A combinar';
+      document.getElementById('pdf-prof-pix-titular').innerText = perfil.pixTitular || 'Não informado';
+      document.getElementById('pdf-data').innerText = `Data: ${orcamento.data}`;
+
+      document.getElementById('pdf-cli-nome').innerText = orcamento.cliente.nome;
+      document.getElementById('pdf-cli-whats').innerText = orcamento.cliente.whats;
+      document.getElementById('pdf-cli-endereco').innerText = orcamento.cliente.endereco || 'Não informado';
+
+      const tbody = document.getElementById('pdf-tbody-servicos');
+      tbody.innerHTML = orcamento.servicos.map(s => {
+        let textoMetrica = '';
+        if(s.cobranca === 'm2') textoMetrica = `${s.qtd} m² x R$ ${s.valUnit}`;
+        else if(s.cobranca === 'ponto') textoMetrica = `${s.qtd} Pontos x R$ ${s.valUnit}`;
+        else if(s.cobranca === 'diaria') textoMetrica = `${s.qtd} Diárias x R$ ${s.valUnit}`;
+        else if(s.cobranca === 'empreita') textoMetrica = `Serviço por Empreita`;
+
+        // TRADUTOR JURÍDICO PARA O PDF
+        let matTipoAtualizado = s.materialTipo;
+        
+        if (matTipoAtualizado === 'Mão de Obra + Material' || matTipoAtualizado === 'Material Incluso' || matTipoAtualizado === 'Material Fornecido pela parte Contratada') {
+            matTipoAtualizado = 'Material Fornecido pela parte Contratada';
+        }
+        if (matTipoAtualizado === 'Mão de Obra + Lista para o cliente' || matTipoAtualizado === 'Com Lista de Materiais' || matTipoAtualizado === 'Materiais Fornecidos pela parte Contratante') {
+            matTipoAtualizado = 'Materiais Fornecidos pela parte Contratante';
+        }
+
+        let tituloMateriais = '';
+        if (matTipoAtualizado === 'Somente Mão de Obra' || matTipoAtualizado === 'Materiais Fornecidos pela parte Contratante') {
+          tituloMateriais = 'Lista de materiais fornecidos pelo cliente:';
+        } else if (matTipoAtualizado === 'Material Fornecido pela parte Contratada') {
+          tituloMateriais = 'Lista de materiais fornecidos pelo prestador:';
+        } else {
+          tituloMateriais = 'Lista de materiais:'; 
+        }
+
+        let htmlMateriais = '';
+        if (s.materialLista && s.materialLista.trim() !== '') {
+          const itens = s.materialLista.split(/,|\n/).map(item => item.trim()).filter(item => item.length > 0);
+          const listaItens = itens.map(item => `<li class="ml-2">• ${item}</li>`).join('');
+          
+          htmlMateriais = `
+            <div class="text-[9px] text-slate-700 bg-slate-100 p-1 rounded mt-0.5 border border-slate-200">
+              <strong>${tituloMateriais}</strong>
+              <ul class="mt-0.5 space-y-0.5 text-slate-800">
+                ${listaItens}
+              </ul>
+            </div>
+          `;
+        }
+
+        return `
+          <tr class="border-b">
+            <td class="p-1">
+              <strong class="text-blue-900">${s.tipo}</strong>
+              <div class="text-[9px] text-slate-500 font-medium">${matTipoAtualizado}</div>
+              ${htmlMateriais}
+              ${s.obs ? `<div class="text-[8px] italic text-slate-500 mt-0.5">Obs: ${s.obs}</div>` : ''}
+            </td>
+            <td class="p-1 text-[10px]">${textoMetrica}</td>
+            <td class="p-1 text-right font-bold text-[10px]">${s.subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('pdf-cond-prazo').innerText = orcamento.condicoes.prazo || 'A combinar';
+      document.getElementById('pdf-cond-pagto').innerText = orcamento.condicoes.pagto || 'A combinar';
+      document.getElementById('pdf-cond-validade').innerText = orcamento.condicoes.validade || '15 dias';
+      document.getElementById('pdf-valor-final').innerText = orcamento.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+      const tempoGarantia = orcamento.condicoes.garantia || '90 dias';
+      document.getElementById('pdf-footer-garantia').innerText = `Garantia de ${tempoGarantia} para os serviços executados. Este documento é uma estimativa formal de custos. A garantia não cobre desgastes naturais, mau uso ou intervenções não autorizadas.`;
+    }
+
+    function abrirModalEditarContrato(id) {
+      const orcamento = orcamentos.find(item => item.id === id);
+      if(!orcamento) return;
+
+      document.getElementById('edit-ctr-id').value = id;
+
+      const servicosTexto = orcamento.servicos.map(s => `- ${s.tipo}: ${s.obs ? s.obs : 'Execução conforme padrões de mercado.'}`).join('\n');
+      document.getElementById('edit-ctr-c1').value = `O presente contrato tem por objeto a execução, pela CONTRATADA, dos serviços de mão de obra para reforma e finalização no imóvel citado, englobando:\n${servicosTexto}`;
+
+      let matTexto = '';
+      orcamento.servicos.forEach(s => {
+        // TRADUTOR JURÍDICO: Transforma o texto simples do App em texto Formal para o Contrato
+        let matTipoAtualizado = s.materialTipo;
+        
+        if (matTipoAtualizado === 'Mão de Obra + Material' || matTipoAtualizado === 'Material Incluso' || matTipoAtualizado === 'Material Fornecido pela parte Contratada') {
+            matTipoAtualizado = 'Material Fornecido pela parte Contratada';
+        }
+        if (matTipoAtualizado === 'Mão de Obra + Lista para o cliente' || matTipoAtualizado === 'Com Lista de Materiais' || matTipoAtualizado === 'Materiais Fornecidos pela parte Contratante') {
+            matTipoAtualizado = 'Materiais Fornecidos pela parte Contratante';
+        }
+
+        if(s.materialLista && s.materialLista.trim() !== '') {
+          matTexto += `- ${s.tipo} (${matTipoAtualizado}): ${s.materialLista}\n`;
+        } else {
+          matTexto += `- ${s.tipo}: ${matTipoAtualizado}\n`;
+        }
+      });
+      document.getElementById('edit-ctr-c2').value = `A responsabilidade pelo fornecimento dos materiais de construção e acabamento está dividida conforme a seguir:\n${matTexto}`;
+
+      document.getElementById('edit-ctr-c3').value = `Previsão de Execução: ${orcamento.condicoes.prazo || '10 dias úteis'} (sujeito a alterações em caso de chuvas extremas ou falta de material sob responsabilidade do cliente).`;
+      document.getElementById('edit-ctr-c4').value = `O valor total da obra é de ${orcamento.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}. Pagamento: ${orcamento.condicoes.pagto}.`;
+      document.getElementById('edit-ctr-extras').value = '';
+
+      // Zera as cláusulas dinâmicas ao abrir o modal
+      document.getElementById('container-clausulas-dinamicas').innerHTML = '';
+      clausulaDinamicaCount = 0;
+
+      document.getElementById('modal-editar-contrato').classList.remove('hidden');
+    }
+
+    function confirmarEGerarPDFContrato() {
+      const id = parseInt(document.getElementById('edit-ctr-id').value);
+      const orcamento = orcamentos.find(item => item.id === id);
+      if(!orcamento) return;
+
+      const logoBox = document.getElementById('contrato-logo-container');
+      const logoImg = document.getElementById('contrato-logo-img');
+      if(perfil.logo) {
+        logoImg.src = perfil.logo;
+        logoBox.classList.remove('hidden');
+      } else {
+        logoBox.classList.add('hidden');
+      }
+
+      document.getElementById('ctr-prof-nome').innerText = perfil.nome || 'Prestador de Serviço';
+      document.getElementById('ctr-prof-doc').innerText = perfil.doc || 'Não informado';
+      document.getElementById('ctr-prof-whats').innerText = perfil.whats || 'Não informado';
+
+      document.getElementById('ctr-cli-nome').innerText = orcamento.cliente.nome;
+      document.getElementById('ctr-cli-whats').innerText = orcamento.cliente.whats;
+      document.getElementById('ctr-cli-endereco').innerText = orcamento.cliente.endereco || 'Não informado';
+
+      document.getElementById('out-ctr-c1').innerText = document.getElementById('edit-ctr-c1').value;
+      document.getElementById('out-ctr-c2').innerText = document.getElementById('edit-ctr-c2').value;
+      document.getElementById('out-ctr-c3').innerText = document.getElementById('edit-ctr-c3').value;
+      document.getElementById('out-ctr-c4').innerText = document.getElementById('edit-ctr-c4').value;
+
+      const extras = document.getElementById('edit-ctr-extras').value;
+      const boxExtras = document.getElementById('ctr-box-extras');
+      if(extras && extras.trim() !== '') {
+        document.getElementById('out-ctr-extras').innerText = extras;
+        boxExtras.classList.remove('hidden');
+      } else {
+        boxExtras.classList.add('hidden');
+      }
+
+      // PROCESSA AS CLÁUSULAS DINÂMICAS E INSERE NO PDF
+      const dynContainer = document.getElementById('ctr-dynamic-clauses');
+      dynContainer.innerHTML = '';
+      let numClausulaAtual = 6; // Começa na 6 pois a 5 é a "Disposições Especiais"
+
+      const dynTextareas = document.querySelectorAll('[id^="edit-ctr-dinamica-"]');
+      dynTextareas.forEach(ta => {
+        const text = ta.value.trim();
+        if(text) {
+          dynContainer.innerHTML += `
+            <div class="mt-2">
+              <h3 class="font-bold text-slate-900 uppercase text-[9px] border-b pb-0.5 mb-0.5">CLÁUSULA ${numClausulaAtual} – DISPOSIÇÃO ADICIONAL</h3>
+              <p class="whitespace-pre-line">${text}</p>
+            </div>
+          `;
+          numClausulaAtual++;
+        }
+      });
+
+      // GARANTIA PROTEGIDA NO CONTRATO
+      const tempoGarantia = orcamento.condicoes.garantia || '90 dias';
+      document.getElementById('out-ctr-garantia').innerText = `Integram este contrato as especificações acordadas por WhatsApp. A CONTRATADA concede a garantia legal de ${tempoGarantia} a contar da data de finalização e entrega da obra. Esta garantia cobre exclusivamente defeitos ou falhas decorrentes da execução do serviço prestado, não cobrindo desgastes naturais, mau uso, intervenções de terceiros não autorizados ou danos causados por fatores externos.`;
+
+      document.getElementById('ctr-pix').innerText = perfil.pix || 'A combinar';
+      document.getElementById('ctr-pix-titular').innerText = perfil.pixTitular || 'Não informado';
+      document.getElementById('ctr-ass-cli').innerText = orcamento.cliente.nome;
+      document.getElementById('ctr-ass-prof').innerText = perfil.nome || 'CONTRATADA';
+
+      fecharModalContrato();
+
+      const element = document.getElementById('contrato-template');
+      
+      const opt = {
+        margin:       0.2,
+        filename:     `Contrato_${orcamento.cliente.nome.replace(/\s+/g, '_')}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).save();
+    }
+
+    function gerarPDF(id) {
+      const orcamento = orcamentos.find(item => item.id === id);
+      if(!orcamento) return;
+
+      popularTemplatePDF(orcamento);
+      const element = document.getElementById('pdf-template');
+      
+      const opt = {
+        margin:       0.2,
+        filename:     `Orcamento_${orcamento.cliente.nome.replace(/\s+/g, '_')}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).save();
+    }
+
+    function enviarWhatsApp(id) {
+      const orcamento = orcamentos.find(item => item.id === id);
+      if(!orcamento) return;
+
+      const num = orcamento.cliente.whats.replace(/\D/g, '');
+      const texto = `Olá *${orcamento.cliente.nome}*!\n\nConforme conversamos, estou enviando o documento detalhado da sua obra.\n\n*Valor Total:* ${orcamento.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n*Validade:* ${orcamento.condicoes.validade}\n\nQualquer dúvida estou à disposição!`;
+
+      window.open(`https://api.whatsapp.com/send?phone=55${num}&text=${encodeURIComponent(texto)}`, '_blank');
+    }
+  </script>
+</body>
+</html>
