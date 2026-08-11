@@ -1,4 +1,4 @@
-const CACHE_NAME = 'orcaobra-v15';
+const CACHE_NAME = 'orcaobra-v16';
 const ASSETS = [
   './',
   './index.html',
