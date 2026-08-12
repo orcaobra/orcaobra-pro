@@ -416,73 +416,75 @@
     </div>
   </div>
 
-  <!-- TEMPLATE OCULTO PDF - CONTRATO -->
+  <!-- TEMPLATE OCULTO PDF - CONTRATO ATUALIZADO E ESPAÇOSO -->
   <div class="hidden">
-    <div id="contrato-template" class="pdf-page-container p-5 text-slate-900 space-y-3 text-[10px] leading-snug">
-      <div class="text-center border-b-2 border-slate-800 pb-1.5">
-        <div id="contrato-logo-container" class="hidden mb-1">
-          <img id="contrato-logo-img" src="" alt="Logo" class="max-h-12 mx-auto object-contain">
+    <div id="contrato-template" class="pdf-page-container p-8 text-slate-900 space-y-5 text-[12px] leading-relaxed">
+      
+      <div class="text-center border-b-2 border-slate-800 pb-3">
+        <div id="contrato-logo-container" class="hidden mb-2">
+          <img id="contrato-logo-img" src="" alt="Logo" class="max-h-16 mx-auto object-contain">
         </div>
-        <h1 class="text-xs font-black uppercase text-slate-900 tracking-wide">CONTRATO DE EXECUÇÃO DE PRESTAÇÃO DE SERVIÇOS DE OBRA</h1>
+        <h1 class="text-sm font-black uppercase text-slate-900 tracking-wide">CONTRATO DE EXECUÇÃO DE PRESTAÇÃO DE SERVIÇOS DE OBRA</h1>
       </div>
 
-      <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2 rounded-lg border border-slate-300">
+      <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-300">
         <div>
-          <h2 class="font-bold text-slate-800 uppercase border-b pb-0.5 text-[9px]">CONTRATADA (Prestador)</h2>
+          <h2 class="font-bold text-slate-800 uppercase border-b pb-1 text-[11px] mb-2">CONTRATADA (Prestador)</h2>
           <p><strong>Empresa/Nome:</strong> <span id="ctr-prof-nome"></span></p>
           <p><strong>CPF/CNPJ:</strong> <span id="ctr-prof-doc"></span> | <strong>Whats:</strong> <span id="ctr-prof-whats"></span></p>
         </div>
         <div>
-          <h2 class="font-bold text-slate-800 uppercase border-b pb-0.5 text-[9px]">CONTRATANTE (Cliente)</h2>
+          <h2 class="font-bold text-slate-800 uppercase border-b pb-1 text-[11px] mb-2">CONTRATANTE (Cliente)</h2>
           <p><strong>Cliente:</strong> <span id="ctr-cli-nome"></span> | <strong>Whats:</strong> <span id="ctr-cli-whats"></span></p>
           <p><strong>Endereço:</strong> <span id="ctr-cli-endereco"></span></p>
         </div>
       </div>
 
       <div>
-        <h3 class="font-bold text-slate-900 uppercase text-[9px] border-b pb-0.5 mb-0.5">CLÁUSULA 1 – DO OBJETO E SERVIÇOS PRESTADOS</h3>
-        <p id="out-ctr-c1" class="whitespace-pre-line"></p>
+        <h3 class="font-bold text-slate-900 uppercase text-[11px] border-b pb-1 mb-1.5">CLÁUSULA 1 – DO OBJETO E SERVIÇOS PRESTADOS</h3>
+        <p id="out-ctr-c1" class="whitespace-pre-line text-justify"></p>
       </div>
 
       <div>
-        <h3 class="font-bold text-slate-900 uppercase text-[9px] border-b pb-0.5 mb-0.5">CLÁUSULA 2 – DA RESPONSABILIDADE DOS MATERIAIS</h3>
-        <p id="out-ctr-c2" class="whitespace-pre-line"></p>
+        <h3 class="font-bold text-slate-900 uppercase text-[11px] border-b pb-1 mb-1.5">CLÁUSULA 2 – DA RESPONSABILIDADE DOS MATERIAIS</h3>
+        <p id="out-ctr-c2" class="whitespace-pre-line text-justify"></p>
       </div>
 
       <div>
-        <h3 class="font-bold text-slate-900 uppercase text-[9px] border-b pb-0.5 mb-0.5">CLÁUSULA 3 – DOS PRAZOS</h3>
-        <p id="out-ctr-c3" class="whitespace-pre-line"></p>
+        <h3 class="font-bold text-slate-900 uppercase text-[11px] border-b pb-1 mb-1.5">CLÁUSULA 3 – DOS PRAZOS</h3>
+        <p id="out-ctr-c3" class="whitespace-pre-line text-justify"></p>
       </div>
 
       <div>
-        <h3 class="font-bold text-slate-900 uppercase text-[9px] border-b pb-0.5 mb-0.5">CLÁUSULA 4 – VALORES E FLUXO FINANCEIRO</h3>
-        <p id="out-ctr-c4" class="whitespace-pre-line mb-1"></p>
-        <p class="bg-slate-50 p-1 rounded border border-slate-200"><strong>Pagamento via Pix:</strong> Chave <strong id="ctr-pix"></strong> | Titular: <strong id="ctr-pix-titular"></strong></p>
+        <h3 class="font-bold text-slate-900 uppercase text-[11px] border-b pb-1 mb-1.5">CLÁUSULA 4 – VALORES E FLUXO FINANCEIRO</h3>
+        <p id="out-ctr-c4" class="whitespace-pre-line text-justify mb-2"></p>
+        <p class="bg-slate-50 p-2 rounded border border-slate-200"><strong>Pagamento via Pix:</strong> Chave <strong id="ctr-pix"></strong> | Titular: <strong id="ctr-pix-titular"></strong></p>
       </div>
 
       <div id="ctr-box-extras" class="hidden">
-        <h3 class="font-bold text-slate-900 uppercase text-[9px] border-b pb-0.5 mb-0.5">CLÁUSULA 5 – DISPOSIÇÕES ESPECIAIS</h3>
-        <p id="out-ctr-extras" class="whitespace-pre-line"></p>
+        <h3 class="font-bold text-slate-900 uppercase text-[11px] border-b pb-1 mb-1.5">CLÁUSULA 5 – DISPOSIÇÕES ESPECIAIS</h3>
+        <p id="out-ctr-extras" class="whitespace-pre-line text-justify"></p>
       </div>
 
       <!-- CONTAINER ONDE ENTRARÃO AS CLÁUSULAS DINÂMICAS GERADAS NO JAVASCRIPT -->
       <div id="ctr-dynamic-clauses"></div>
 
       <div class="mt-2">
-        <h3 class="font-bold text-slate-900 uppercase text-[9px] border-b pb-0.5 mb-0.5">CLÁUSULA DE GARANTIA E COMUNICAÇÃO</h3>
-        <p id="out-ctr-garantia"></p>
+        <h3 class="font-bold text-slate-900 uppercase text-[11px] border-b pb-1 mb-1.5">CLÁUSULA DE GARANTIA E COMUNICAÇÃO</h3>
+        <p id="out-ctr-garantia" class="text-justify"></p>
       </div>
 
-      <div class="pt-3 avoid-break">
-        <p class="text-center font-medium mb-4">E, por estarem assim justos e contratados, firmam o presente instrumento.</p>
-        <div class="grid grid-cols-2 gap-6 text-center pt-2">
-          <div class="border-t border-slate-800 pt-0.5">
-            <p class="font-bold"><span id="ctr-ass-cli"></span></p>
-            <p class="text-[8px] text-slate-500">CONTRATANTE (Cliente)</p>
+      <!-- ÁREA DE ASSINATURA PROTEGIDA CONTRA CORTES -->
+      <div class="mt-8 pt-6 avoid-break" style="page-break-inside: avoid;">
+        <p class="text-center font-medium mb-10">E, por estarem assim justos e contratados, firmam o presente instrumento.</p>
+        <div class="grid grid-cols-2 gap-8 text-center pt-2">
+          <div class="border-t border-slate-800 pt-2">
+            <p class="font-bold text-sm"><span id="ctr-ass-cli"></span></p>
+            <p class="text-[10px] text-slate-500 uppercase">CONTRATANTE (Cliente)</p>
           </div>
-          <div class="border-t border-slate-800 pt-0.5">
-            <p class="font-bold"><span id="ctr-ass-prof"></span></p>
-            <p class="text-[8px] text-slate-500">CONTRATADA (Prestador)</p>
+          <div class="border-t border-slate-800 pt-2">
+            <p class="font-bold text-sm"><span id="ctr-ass-prof"></span></p>
+            <p class="text-[10px] text-slate-500 uppercase">CONTRATADA (Prestador)</p>
           </div>
         </div>
       </div>
@@ -643,7 +645,7 @@
     };
   </script>
 
-    <!-- LÓGICA DO APLICATIVO -->
+  <!-- LÓGICA DO APLICATIVO -->
   <script>
     // CÓDIGO QUE ACORDA O BOTÃO DE DOWNLOAD
     if ('serviceWorker' in navigator) {
@@ -653,6 +655,7 @@
           .catch(err => console.log('Erro no Service Worker:', err));
       });
     }
+
     let perfil = JSON.parse(localStorage.getItem('orca_perfil_v2')) || {
       nome: 'Sua Empresa / Nome',
       whats: '',
@@ -896,7 +899,6 @@
       } else if(tipoCobranca === 'empreita') {
         lblQtd.innerText = "Qtd. (Geralmente 1)";
         lblVal.innerText = "Valor da Empreita (R$)";
-        // Preenche com 1 automaticamente para facilitar a vida do prestador
         if (!document.getElementById(`serv-qtd-${id}`).value) {
           document.getElementById(`serv-qtd-${id}`).value = 1;
         }
@@ -924,7 +926,6 @@
       }
     }
 
-    // CLÁUSULAS DINÂMICAS NO CONTRATO
     function adicionarClausulaDinamica() {
       clausulaDinamicaCount++;
       const container = document.getElementById('container-clausulas-dinamicas');
@@ -1006,7 +1007,7 @@
           prazo: document.getElementById('cond-prazo').value,
           pagto: document.getElementById('cond-pagto').value,
           validade: document.getElementById('cond-validade').value,
-          garantia: document.getElementById('cond-garantia').value // SALVA A GARANTIA
+          garantia: document.getElementById('cond-garantia').value 
         },
         totalGeral: calcularTotalGeral(),
         status: 'Pendente'
@@ -1023,7 +1024,7 @@
       document.getElementById('cli-nome').value = '';
       document.getElementById('cli-whats').value = '';
       document.getElementById('cli-endereco').value = '';
-      document.getElementById('cond-garantia').value = '90 dias'; // RESETA PRA 90 DIAS
+      document.getElementById('cond-garantia').value = '90 dias';
       document.getElementById('container-servicos').innerHTML = '';
       servicosContador = 0;
       adicionarServico();
@@ -1136,9 +1137,7 @@
         else if(s.cobranca === 'diaria') textoMetrica = `${s.qtd} Diárias x R$ ${s.valUnit}`;
         else if(s.cobranca === 'empreita') textoMetrica = `Serviço por Empreita`;
 
-        // TRADUTOR JURÍDICO PARA O PDF
         let matTipoAtualizado = s.materialTipo;
-        
         if (matTipoAtualizado === 'Mão de Obra + Material' || matTipoAtualizado === 'Material Incluso' || matTipoAtualizado === 'Material Fornecido pela parte Contratada') {
             matTipoAtualizado = 'Material Fornecido pela parte Contratada';
         }
@@ -1159,13 +1158,10 @@
         if (s.materialLista && s.materialLista.trim() !== '') {
           const itens = s.materialLista.split(/,|\n/).map(item => item.trim()).filter(item => item.length > 0);
           const listaItens = itens.map(item => `<li class="ml-2">• ${item}</li>`).join('');
-          
           htmlMateriais = `
             <div class="text-[9px] text-slate-700 bg-slate-100 p-1 rounded mt-0.5 border border-slate-200">
               <strong>${tituloMateriais}</strong>
-              <ul class="mt-0.5 space-y-0.5 text-slate-800">
-                ${listaItens}
-              </ul>
+              <ul class="mt-0.5 space-y-0.5 text-slate-800">${listaItens}</ul>
             </div>
           `;
         }
@@ -1204,9 +1200,7 @@
 
       let matTexto = '';
       orcamento.servicos.forEach(s => {
-        // TRADUTOR JURÍDICO: Transforma o texto simples do App em texto Formal para o Contrato
         let matTipoAtualizado = s.materialTipo;
-        
         if (matTipoAtualizado === 'Mão de Obra + Material' || matTipoAtualizado === 'Material Incluso' || matTipoAtualizado === 'Material Fornecido pela parte Contratada') {
             matTipoAtualizado = 'Material Fornecido pela parte Contratada';
         }
@@ -1226,10 +1220,8 @@
       document.getElementById('edit-ctr-c4').value = `O valor total da obra é de ${orcamento.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}. Pagamento: ${orcamento.condicoes.pagto}.`;
       document.getElementById('edit-ctr-extras').value = '';
 
-      // Zera as cláusulas dinâmicas ao abrir o modal
       document.getElementById('container-clausulas-dinamicas').innerHTML = '';
       clausulaDinamicaCount = 0;
-
       document.getElementById('modal-editar-contrato').classList.remove('hidden');
     }
 
@@ -1269,26 +1261,23 @@
         boxExtras.classList.add('hidden');
       }
 
-      // PROCESSA AS CLÁUSULAS DINÂMICAS E INSERE NO PDF
       const dynContainer = document.getElementById('ctr-dynamic-clauses');
       dynContainer.innerHTML = '';
-      let numClausulaAtual = 6; // Começa na 6 pois a 5 é a "Disposições Especiais"
-
+      let numClausulaAtual = 6; 
       const dynTextareas = document.querySelectorAll('[id^="edit-ctr-dinamica-"]');
       dynTextareas.forEach(ta => {
         const text = ta.value.trim();
         if(text) {
           dynContainer.innerHTML += `
             <div class="mt-2">
-              <h3 class="font-bold text-slate-900 uppercase text-[9px] border-b pb-0.5 mb-0.5">CLÁUSULA ${numClausulaAtual} – DISPOSIÇÃO ADICIONAL</h3>
-              <p class="whitespace-pre-line">${text}</p>
+              <h3 class="font-bold text-slate-900 uppercase text-[11px] border-b pb-1 mb-1.5">CLÁUSULA ${numClausulaAtual} – DISPOSIÇÃO ADICIONAL</h3>
+              <p class="whitespace-pre-line text-justify">${text}</p>
             </div>
           `;
           numClausulaAtual++;
         }
       });
 
-      // GARANTIA PROTEGIDA NO CONTRATO
       const tempoGarantia = orcamento.condicoes.garantia || '90 dias';
       document.getElementById('out-ctr-garantia').innerText = `Integram este contrato as especificações acordadas por WhatsApp. A CONTRATADA concede a garantia legal de ${tempoGarantia} a contar da data de finalização e entrega da obra. Esta garantia cobre exclusivamente defeitos ou falhas decorrentes da execução do serviço prestado, não cobrindo desgastes naturais, mau uso, intervenções de terceiros não autorizados ou danos causados por fatores externos.`;
 
@@ -1302,11 +1291,12 @@
       const element = document.getElementById('contrato-template');
       
       const opt = {
-        margin:       0.2,
+        margin:       [0.5, 0.4, 0.5, 0.4], // Margem maior para o contrato
         filename:     `Contrato_${orcamento.cliente.nome.replace(/\s+/g, '_')}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }, // Folha A4 padrão brasileiro
+        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // Trava para não cortar assinatura
       };
 
       html2pdf().set(opt).from(element).save();
@@ -1320,11 +1310,11 @@
       const element = document.getElementById('pdf-template');
       
       const opt = {
-        margin:       0.2,
+        margin:       [0.3, 0.3, 0.3, 0.3],
         filename:     `Orcamento_${orcamento.cliente.nome.replace(/\s+/g, '_')}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
       };
 
       html2pdf().set(opt).from(element).save();
