@@ -63,7 +63,7 @@
   <!-- BANNER DE BLOQUEIO DA ASSINATURA -->
   <div id="banner-assinatura-bloqueada" class="bg-red-600 text-white text-xs font-bold py-3 px-4 shadow-md hidden text-center space-y-2">
     <p><i class="fa-solid fa-lock"></i> Seus 30 dias de acesso expiraram! Renove sua assinatura para continuar utilizando o aplicativo.</p>
-    <a href="https://pay.kirvano.com/3374c0d4-8919-435f-8a41-18c236bfe6ac" target="_blank" class="inline-block bg-amber-400 text-slate-950 px-4 py-2 rounded-lg font-extrabold hover:bg-amber-300 shadow transition uppercase">
+    <a href="https://pay.kirvano.com/3374c0d4-8919-435f-8a41-18c236bfe6ac?&RENOVACAO" target="_blank" class="inline-block bg-amber-400 text-slate-950 px-4 py-2 rounded-lg font-extrabold hover:bg-amber-300 shadow transition uppercase">
       <i class="fa-solid fa-credit-card"></i> Renovar Assinatura (R$ 19,90/mês)
     </a>
   </div>
@@ -295,7 +295,7 @@
           <span class="block text-xs font-bold text-amber-900">Plano OrçaObra Pro</span>
           <span id="perfil-dias-restantes" class="text-[11px] text-amber-700">Carregando...</span>
         </div>
-        <a href="https://pay.kirvano.com/3374c0d4-8919-435f-8a41-18c236bfe6ac" target="_blank" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs px-3 py-2 rounded-lg shadow transition flex items-center gap-1">
+        <a href="https://pay.kirvano.com/3374c0d4-8919-435f-8a41-18c236bfe6ac?&RENOVACAO" target="_blank" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs px-3 py-2 rounded-lg shadow transition flex items-center gap-1">
           <i class="fa-solid fa-arrows-rotate"></i> Renovar (R$ 19,90)
         </a>
       </div>
@@ -873,7 +873,7 @@
         </div>
       `;
 
-      container.appendChild(card);
+      container.prepend(card); // <--- DE VOLTA PARA PREPEND (ADICIONA NO TOPO)
       alternarCamposCobranca(id);
       calcularTotalGeral();
     }
