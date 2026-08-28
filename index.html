@@ -226,7 +226,7 @@
         <button onclick="toggleModalPerfil()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
       </div>
 
-      <div class="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+     <div class="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
         <label class="block text-xs font-bold text-slate-700 uppercase">Logo da Empresa</label>
         <div class="flex items-center gap-4">
           <div id="preview-logo-box" class="w-16 h-16 rounded-xl border-2 border-dashed border-slate-300 bg-white flex items-center justify-center overflow-hidden">
@@ -234,13 +234,15 @@
             <img id="preview-logo-img" src="" alt="Preview" class="w-full h-full object-cover hidden">
           </div>
           <div class="flex-1 space-y-1">
-            <!-- BOTÃO ALTERADO AQUI PARA RESOLVER O PROBLEMA DO IPHONE E ANDROID -->
-            <input type="file" id="input-logo-file" accept="image/*" onchange="carregarLogoEmBase64(event)" class="sr-only">
-            <label for="input-logo-file" class="bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-semibold px-3 py-2 rounded-lg w-full transition cursor-pointer flex items-center justify-center gap-1.5 text-center">
-              <i class="fa-solid fa-upload"></i> Selecionar Imagem
-            </label>
-            <!-- FIM DA ALTERAÇÃO -->
-            <button id="btn-remover-logo" onclick="removerLogo()" class="text-xs text-red-600 hover:underline hidden">Remover Logo</button>
+            
+            <div class="relative w-full">
+              <input type="file" id="input-logo-file" accept="image/*" onchange="carregarLogoEmBase64(event)" class="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-10" style="opacity: 0;">
+              <div class="bg-slate-200 text-slate-800 text-xs font-semibold px-3 py-2 rounded-lg w-full flex items-center justify-center gap-1.5 text-center">
+                <i class="fa-solid fa-upload"></i> Selecionar Imagem
+              </div>
+            </div>
+
+            <button id="btn-remover-logo" onclick="removerLogo()" class="text-xs text-red-600 hover:underline hidden mt-1">Remover Logo</button>
           </div>
         </div>
       </div>
