@@ -836,21 +836,24 @@
               
               <!-- Novos Serviços de Fundação e Estrutura -->
               <option value="Escavação">Escavação</option>
+              <option value="Fundação">Fundação</option>
               <option value="Busto (Bloco / Tubulão)">Busto (Bloco / Tubulão)</option>
               <option value="Concretagem">Concretagem</option>
               <option value="Forma">Forma</option>
               <option value="Laje">Laje</option>
               <option value="Estrutura metálica">Estrutura metálica</option>
-              <option value="Fundação">Fundação</option>
-              
+              <option value="Telhado / Cobertura">Telhado / Cobertura</option>
+                         
               <!-- Outros -->
               <option value="Outros Serviços">Outros Serviços</option>
           </select>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo de Cobrança</label>
-            <select id="serv-cobranca-${id}" onchange="alternarCamposCobranca(${id})" class="w-full border rounded-xl p-2.5 text-sm bg-white font-medium text-blue-900">
+          <select id="serv-cobranca-${id}" onchange="alternarCamposCobranca(${id})" class="w-full border rounded-xl p-2.5 text-sm bg-white font-medium text-blue-900">
               <option value="m2">Por Metro Quadrado (m²)</option>
+              <option value="m3">Por Metro Cúbico (m³)</option>
+              <option value="ml">Por Metro Linear (ml)</option>
               <option value="ponto">Por Ponto / Instalação</option>
               <option value="diaria">Por Diária</option>
               <option value="empreita">Por Empreita (Valor Fechado)</option>
@@ -912,6 +915,14 @@
         lblQtd.innerText = "Metragem Total (m²)";
         lblVal.innerText = "Valor por m² (R$)";
         inputVal.value = perfil.m2 || '';
+      } else if(tipoCobranca === 'm3') {
+        lblQtd.innerText = "Volume Total (m³)";
+        lblVal.innerText = "Valor por m³ (R$)";
+        inputVal.value = ''; 
+      } else if(tipoCobranca === 'ml') {
+        lblQtd.innerText = "Tamanho Total (metros)";
+        lblVal.innerText = "Valor por metro linear (R$)";
+        inputVal.value = ''; 
       } else if(tipoCobranca === 'ponto') {
         lblQtd.innerText = "Qtd. de Pontos / Instalações";
         lblVal.innerText = "Valor por Ponto (R$)";
@@ -1225,12 +1236,13 @@
 
       const tbody = document.getElementById('pdf-tbody-servicos');
       tbody.innerHTML = orcamento.servicos.map(s => {
-        let textoMetrica = '';
+       let textoMetrica = '';
         if(s.cobranca === 'm2') textoMetrica = `${s.qtd} m² x R$ ${s.valUnit}`;
+        else if(s.cobranca === 'm3') textoMetrica = `${s.qtd} m³ x R$ ${s.valUnit}`;
+        else if(s.cobranca === 'ml') textoMetrica = `${s.qtd} ml x R$ ${s.valUnit}`;
         else if(s.cobranca === 'ponto') textoMetrica = `${s.qtd} Pontos x R$ ${s.valUnit}`;
         else if(s.cobranca === 'diaria') textoMetrica = `${s.qtd} Diárias x R$ ${s.valUnit}`;
         else if(s.cobranca === 'empreita') textoMetrica = `Serviço por Empreita`;
-
         let matTipoAtualizado = s.materialTipo;
         if (matTipoAtualizado === 'Mão de Obra + Material' || matTipoAtualizado === 'Material Incluso' || matTipoAtualizado === 'Material Fornecido pela parte Contratada') {
             matTipoAtualizado = 'Material Fornecido pela parte Contratada';
