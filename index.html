@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+  
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,6 +29,43 @@
       break-inside: avoid !important;
     }
   </style>
+<!-- SISTEMA DE PROTEÇÃO ANTICÓPIA -->
+  <script>
+    // Bloqueia o clique com o botão direito (Menu de contexto)
+    document.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+    });
+
+    // Bloqueia atalhos de teclado
+    document.addEventListener('keydown', function(e) {
+      // Bloqueia F12
+      if (e.key === 'F12' || e.keyCode === 123) {
+        e.preventDefault();
+        return false;
+      }
+      
+      // Bloqueia Ctrl+U ou Cmd+U (Ver código-fonte)
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'u' || e.key === 'U' || e.keyCode === 85)) {
+        e.preventDefault();
+        return false;
+      }
+      
+      // Bloqueia Ctrl+S ou Cmd+S (Salvar página inteira)
+      if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S' || e.keyCode === 83)) {
+        e.preventDefault();
+        return false;
+      }
+
+      // Bloqueia Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C (Ferramentas de Desenvolvedor)
+      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.keyCode === 73 || 
+                                      e.key === 'J' || e.key === 'j' || e.keyCode === 74 || 
+                                      e.key === 'C' || e.key === 'c' || e.keyCode === 67)) {
+        e.preventDefault();
+        return false;
+      }
+    });
+  </script>  
+  
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans pb-16 select-none">
 
