@@ -101,7 +101,7 @@
   <!-- BANNER DE BLOQUEIO DA ASSINATURA -->
   <div id="banner-assinatura-bloqueada" class="bg-red-600 text-white text-xs font-bold py-3 px-4 shadow-md hidden text-center space-y-2">
     <p><i class="fa-solid fa-lock"></i> Seus 30 dias de acesso expiraram! Renove sua assinatura para continuar utilizando o aplicativo.</p>
-    <a href="https://pay.kirvano.com/3374c0d4-8919-435f-8a41-18c236bfe6ac?&src=RENOVACAO" target="_blank" class="inline-block bg-amber-400 text-slate-950 px-4 py-2 rounded-lg font-extrabold hover:bg-amber-300 shadow transition uppercase">
+    <a id="link-renovar-banner" href="https://pay.kirvano.com/3374c0d4-8919-435f-8a41-18c236bfe6ac?&src=RENOVACAO" target="_blank" class="inline-block bg-amber-400 text-slate-950 px-4 py-2 rounded-lg font-extrabold hover:bg-amber-300 shadow transition uppercase">
       <i class="fa-solid fa-credit-card"></i> Renovar Assinatura (R$ 19,90/mês)
     </a>
   </div>
@@ -337,12 +337,12 @@
           <span class="block text-xs font-bold text-amber-900">Plano OrçaObra Pro</span>
           <span id="perfil-dias-restantes" class="text-[11px] text-amber-700">Carregando...</span>
         </div>
-        <a href="https://pay.kirvano.com/3374c0d4-8919-435f-8a41-18c236bfe6ac?&src=RENOVACAO" target="_blank" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs px-3 py-2 rounded-lg shadow transition flex items-center gap-1">
+        <a id="link-renovar-perfil" href="https://pay.kirvano.com/3374c0d4-8919-435f-8a41-18c236bfe6ac?&src=RENOVACAO" target="_blank" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs px-3 py-2 rounded-lg shadow transition flex items-center gap-1">
           <i class="fa-solid fa-arrows-rotate"></i> Renovar (R$ 19,90)
         </a>
       </div>
 
-      <!-- BOTÃO: SUPORTE VIA WHATSAPP (GANA) -->
+      <!-- BOTÃO: SUPORTE VIA WHATSAPP -->
       <div class="pt-2 text-center">
         <a href="https://api.whatsapp.com/send?phone=233505417501&text=Olá! Preciso de suporte com o aplicativo OrçaObra Pro." target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition text-[11px] font-semibold shadow-sm">
           <i class="fa-brands fa-whatsapp text-xs"></i> Suporte via WhatsApp
@@ -440,7 +440,7 @@
             <tr class="bg-slate-100 border-b text-left text-[10px] uppercase">
               <th class="p-1">Especialidade / Detalhes</th>
               <th class="p-1">Métrica</th>
-              <th id="pdf-th-subtotal" class="p-1 text-right">Subtotal</th> <!-- ID ADICIONADO AQUI -->
+              <th id="pdf-th-subtotal" class="p-1 text-right">Subtotal</th>
             </tr>
           </thead>
           <tbody id="pdf-tbody-servicos"></tbody>
@@ -668,11 +668,27 @@
           document.getElementById('user-status-badge').innerText = `Acesso Ativo (${diasRestantes} dias)`;
           document.getElementById('perfil-dias-restantes').innerText = `${diasRestantes} dias restantes`;
           document.getElementById('banner-assinatura-bloqueada').classList.add('hidden');
+          
+          // GARANTE QUE O APLICATIVO FIQUE VISÍVEL PARA QUEM PAGOU
+          document.getElementById('app-main-content').classList.remove('hidden');
         } else {
           document.getElementById('user-status-badge').innerText = "Acesso Expirado";
           document.getElementById('perfil-dias-restantes').innerText = "Licença Expirada";
           document.getElementById('banner-assinatura-bloqueada').classList.remove('hidden');
+          
+          // TRAVA: ESCONDE TODO O APLICATIVO SE ESTIVER VENCIDO
+          document.getElementById('app-main-content').classList.add('hidden');
         }
+
+        // INJETA O E-MAIL DO CLIENTE LOGADO DIRETO NO LINK DA KIRVANO
+        const emailDoCliente = auth.currentUser.email;
+        const linkDinamico = `https://pay.kirvano.com/3374c0d4-8919-435f-8a41-18c236bfe6ac?&src=RENOVACAO&email=${encodeURIComponent(emailDoCliente)}`;
+        
+        const btnBanner = document.getElementById('link-renovar-banner');
+        const btnPerfil = document.getElementById('link-renovar-perfil');
+        if (btnBanner) btnBanner.href = linkDinamico;
+        if (btnPerfil) btnPerfil.href = linkDinamico;
+
       } catch (err) {
         console.log("Erro ao checar assinatura:", err);
       }
@@ -882,7 +898,7 @@ if ('serviceWorker' in navigator) {
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Especialidade / Serviço</label>
             <select id="serv-tipo-${id}" class="w-full border rounded-xl p-2.5 text-sm bg-white">
-                         
+                          
               <!-- Alvenaria e Revestimentos Básicos -->
               <option value="Alvenaria / Bloco">Alvenaria / Bloco</option>
               <option value="Chapisco">Chapisco</option>
