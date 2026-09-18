@@ -993,9 +993,9 @@ function mudarAba(aba, registrarHistorico = true) {
         }
       });
 
-      if (aba === 'lista') renderizarListaOrcamentos();
-      // Opcional por enquanto: if (aba === 'clientes') renderizarListaClientes();
-      // Opcional por enquanto: if (aba === 'financeiro') atualizarDashboardFinanceiro();
+  if (aba === 'lista') renderizarListaOrcamentos();
+      if (aba === 'clientes') renderizarListaClientes(); 
+      if (aba === 'financeiro') atualizarDashboardFinanceiro(); 
 
       if (registrarHistorico) {
         history.pushState({ aba: aba }, '', '#' + aba);
@@ -1659,7 +1659,199 @@ function mudarAba(aba, registrarHistorico = true) {
 
       html2pdf().set(opt).from(element).save();
     }
+// ==========================================
+    // FASE 2: INTELIGÊNCIA DE CLIENTES E FINANCEIRO
+    // ==========================================
 
+    // 1. LÓGICA DA ABA CLIENTES
+    function renderizarListaClientes() {
+      const container = document.getElementById('lista-clientes-container');
+      const termoBusca = document.getElementById('busca-cliente') ? document.getElementById('busca-cliente').value.toLowerCase() : '';
+
+      // Agrupa os orçamentos por cliente (usando o WhatsApp como identificador único)
+      const mapaClientes = new Map();
+      orcamentos.forEach(orc => {
+        const whats = orc.cliente.whats || 'sem-numero';
+        if (!mapaClientes.has(whats)) {
+          mapaClientes.set(whats, {
+            nome: orc.cliente.nome,
+            whats: orc.cliente.whats,
+            endereco: orc.cliente.endereco,
+            totalGasto: 0,
+            qtdOrcamentos: 0
+          });
+        }
+        const cli = mapaClientes.get(whats);
+        cli.qtdOrcamentos += 1;
+        if (orc.status === 'Aprovado' || orc.status === 'Concluído') {
+          cli.totalGasto += orc.totalGeral;
+        }
+      });
+
+      let clientesArray = Array.from(mapaClientes.values());
+
+      // Filtro de busca
+      if (termoBusca) {
+        clientesArray = clientesArray.filter(c => c.nome.toLowerCase().includes(termoBusca));
+      }
+
+      // Ordena por ordem alfabética
+      clientesArray.sort((a, b) => a.nome.localeCompare(b.nome));
+
+      document.getElementById('qtd-clientes').innerText = clientesArray.length;
+
+      if (clientesArray.length === 0) {
+        container.innerHTML = `<p class="text-center text-slate-400 py-8 text-sm">Nenhum cliente encontrado.</p>`;
+        return;
+      }
+
+      container.innerHTML = clientesArray.map(cli => {
+        const numZap = cli.whats ? cli.whats.replace(/\D/g, '') : '';
+        const linkZap = numZap ? `https://wa.me/55${numZap}` : '#';
+
+        return `
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center gap-3">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm">${cli.nome}</h3>
+              <p class="text-xs text-slate-500"><i class="fa-solid fa-phone mr-1"></i> ${cli.whats || 'Sem número'} | <i class="fa-solid fa-file-invoice mr-1"></i> ${cli.qtdOrcamentos} Orçamentos</p>
+              <p class="text-xs font-bold text-green-700 mt-1">Valor Fechado: ${cli.totalGasto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+            </div>
+            ${numZap ? `
+            <a href="${linkZap}" target="_blank" class="bg-green-100 hover:bg-green-200 text-green-700 w-10 h-10 rounded-full flex items-center justify-center shadow-sm transition shrink-0">
+              <i class="fa-brands fa-whatsapp text-xl"></i>
+            </a>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Listener para a barra de pesquisa de clientes funcionar em tempo real
+    document.addEventListener('DOMContentLoaded', () => {
+      const inputBusca = document.getElementById('busca-cliente');
+      if(inputBusca) {
+        inputBusca.addEventListener('input', renderizarListaClientes);
+      }
+    });
+
+    // 2. LÓGICA DA ABA FINANCEIRO E GRÁFICOS
+    let graficoFinanceiroInst = null;
+    let filtroTempoFinanceiro = 'mes'; // Padrão: mês atual
+
+    function mudarTempoFin(tempo) {
+      filtroTempoFinanceiro = tempo;
+      
+      // Atualiza o visual dos botões
+      const botoes = ['semana', 'mes', 'ano'];
+      botoes.forEach(b => {
+        const btn = document.getElementById('btn-fin-' + b);
+        if (b === tempo) {
+          btn.className = "flex-1 py-1.5 text-xs font-bold rounded-lg bg-blue-800 text-white shadow";
+        } else {
+          btn.className = "flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:bg-slate-100";
+        }
+      });
+      
+      atualizarDashboardFinanceiro();
+    }
+
+    function atualizarDashboardFinanceiro() {
+      const hoje = new Date();
+      hoje.setHours(0,0,0,0);
+
+      let totalAprovado = 0;
+      let totalPendente = 0;
+      const mapaGrafico = new Map();
+
+      orcamentos.forEach(orc => {
+        // Converte a data do formato DD/MM/YYYY para objeto Date do JavaScript
+        const partesData = orc.data.split('/');
+        let dataOrc = new Date();
+        if(partesData.length === 3) {
+          dataOrc = new Date(`${partesData[2]}-${partesData[1]}-${partesData[0]}T00:00:00`);
+        }
+
+        // Filtro de Tempo
+        let dentroDoFiltro = false;
+        if (filtroTempoFinanceiro === 'semana') {
+          const diffTime = Math.abs(hoje - dataOrc);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          dentroDoFiltro = (diffDays <= 7 && dataOrc <= hoje);
+        } else if (filtroTempoFinanceiro === 'mes') {
+          dentroDoFiltro = (dataOrc.getMonth() === hoje.getMonth() && dataOrc.getFullYear() === hoje.getFullYear());
+        } else if (filtroTempoFinanceiro === 'ano') {
+          dentroDoFiltro = (dataOrc.getFullYear() === hoje.getFullYear());
+        }
+
+        if (dentroDoFiltro) {
+          if (orc.status === 'Aprovado' || orc.status === 'Concluído') {
+            totalAprovado += orc.totalGeral;
+            
+            // Agrupa para o gráfico
+            let chaveEixoX = '';
+            if (filtroTempoFinanceiro === 'semana') {
+              chaveEixoX = dataOrc.toLocaleDateString('pt-BR', {weekday: 'short', day: '2-digit'});
+            } else if (filtroTempoFinanceiro === 'mes') {
+              chaveEixoX = dataOrc.getDate().toString().padStart(2, '0');
+            } else if (filtroTempoFinanceiro === 'ano') {
+              chaveEixoX = dataOrc.toLocaleDateString('pt-BR', {month: 'short'});
+            }
+            
+            const valorAtual = mapaGrafico.get(chaveEixoX) || 0;
+            mapaGrafico.set(chaveEixoX, valorAtual + orc.totalGeral);
+          } else if (orc.status === 'Pendente') {
+            totalPendente += orc.totalGeral;
+          }
+        }
+      });
+
+      // Atualiza os Valores nos Cards
+      document.getElementById('fin-entradas').innerText = totalAprovado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      document.getElementById('fin-previsto').innerText = totalPendente.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      // Por enquanto, o Caixa Líquido reflete as entradas (Aprovados). Mais para frente adicionamos o controle de saídas/despesas de obra.
+      document.getElementById('fin-saldo-caixa').innerText = totalAprovado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+      // Atualiza o Gráfico Chart.js
+      desenharGrafico(mapaGrafico);
+    }
+
+    function desenharGrafico(mapaGrafico) {
+      const ctx = document.getElementById('graficoFinanceiro');
+      if(!ctx) return;
+
+      // Prepara e ordena os dados para o gráfico
+      const labels = Array.from(mapaGrafico.keys()).sort();
+      const valores = labels.map(l => mapaGrafico.get(l));
+
+      if (graficoFinanceiroInst) {
+        graficoFinanceiroInst.destroy();
+      }
+
+      graficoFinanceiroInst = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels.length > 0 ? labels : ['Sem dados no período'],
+          datasets: [{
+            label: 'Valor Fechado (R$)',
+            data: valores.length > 0 ? valores : [0],
+            backgroundColor: '#3b82f6', // Azul do tailwind
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: { 
+              beginAtZero: true, 
+              ticks: { callback: function(value) { return 'R$ ' + value; } } 
+            }
+          }
+        }
+      });
+    }
     function enviarWhatsApp(id) {
       const orcamento = orcamentos.find(item => item.id === id);
       if(!orcamento) return;
