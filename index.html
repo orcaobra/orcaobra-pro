@@ -16,6 +16,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- HTML2PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- Chart.js para os Gráficos Financeiros -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <style>
     .pdf-page-container {
@@ -156,12 +158,20 @@
 
   <!-- CONTEÚDO PRINCIPAL DO APP -->
   <main id="app-main-content" class="max-w-4xl mx-auto p-3 sm:p-5 space-y-6 hidden">
-    <div class="flex border-b border-slate-300 bg-white rounded-t-2xl overflow-hidden shadow-sm">
-      <button id="tab-btn-novo" onclick="mudarAba('novo')" class="flex-1 py-3 text-center font-bold text-sm border-b-2 border-blue-700 text-blue-700 bg-blue-50/60 transition">
-        <i class="fa-solid fa-plus-circle mr-1"></i> Novo Orçamento
+    
+    <!-- MENU DE ABAS ATUALIZADO (4 BOTÕES) -->
+    <div class="flex border-b border-slate-300 bg-white rounded-t-2xl overflow-hidden shadow-sm text-xs sm:text-sm">
+      <button id="tab-btn-novo" onclick="mudarAba('novo')" class="flex-1 py-3 flex flex-col sm:flex-row items-center justify-center gap-1 font-bold border-b-2 border-blue-700 text-blue-700 bg-blue-50/60 transition">
+        <i class="fa-solid fa-plus-circle"></i> <span>Novo</span>
       </button>
-      <button id="tab-btn-lista" onclick="mudarAba('lista')" class="flex-1 py-3 text-center font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
-        <i class="fa-solid fa-folder-open mr-1"></i> Histórico
+      <button id="tab-btn-lista" onclick="mudarAba('lista')" class="flex-1 py-3 flex flex-col sm:flex-row items-center justify-center gap-1 font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
+        <i class="fa-solid fa-file-invoice"></i> <span>Histórico</span>
+      </button>
+      <button id="tab-btn-clientes" onclick="mudarAba('clientes')" class="flex-1 py-3 flex flex-col sm:flex-row items-center justify-center gap-1 font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
+        <i class="fa-solid fa-users"></i> <span>Clientes</span>
+      </button>
+      <button id="tab-btn-financeiro" onclick="mudarAba('financeiro')" class="flex-1 py-3 flex flex-col sm:flex-row items-center justify-center gap-1 font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
+        <i class="fa-solid fa-chart-pie text-amber-500"></i> <span>Financeiro</span>
       </button>
     </div>
 
@@ -251,6 +261,57 @@
         <span id="qtd-orcamentos" class="text-xs font-bold bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full">0</span>
       </div>
       <div id="lista-orcamentos-container" class="space-y-3"></div>
+    </section>
+
+    <!-- ABA 3: CLIENTES -->
+    <section id="aba-clientes" class="bg-white p-4 sm:p-6 rounded-b-2xl shadow-sm border border-slate-200 hidden space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h2 class="text-base font-bold text-slate-700 flex items-center gap-2">
+          <i class="fa-solid fa-users text-blue-600"></i> Carteira de Clientes
+        </h2>
+        <span id="qtd-clientes" class="text-xs font-bold bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full">0</span>
+      </div>
+      <!-- Barra de Pesquisa rápida -->
+      <div>
+        <input type="text" id="busca-cliente" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Buscar cliente por nome...">
+      </div>
+      <div id="lista-clientes-container" class="space-y-3">
+        <p class="text-center text-slate-400 py-8 text-sm">Carregando clientes...</p>
+      </div>
+    </section>
+
+    <!-- ABA 4: FINANCEIRO -->
+    <section id="aba-financeiro" class="bg-slate-50 p-4 sm:p-6 rounded-b-2xl shadow-sm border border-slate-200 hidden space-y-5">
+      <!-- Filtros de Tempo -->
+      <div class="flex gap-2 mb-4 bg-white p-2 rounded-xl shadow-sm border border-slate-200">
+        <button class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:bg-slate-100" id="btn-fin-semana" onclick="mudarTempoFin('semana')">Semana</button>
+        <button class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-blue-800 text-white shadow" id="btn-fin-mes" onclick="mudarTempoFin('mes')">Mês</button>
+        <button class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:bg-slate-100" id="btn-fin-ano" onclick="mudarTempoFin('ano')">Ano</button>
+      </div>
+
+      <!-- Resumo Financeiro (Cards) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-blue-600">
+          <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Caixa Atual (Líquido)</h3>
+          <div class="text-2xl font-black text-slate-800" id="fin-saldo-caixa">R$ 0,00</div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-green-500">
+          <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Recebido (Aprovados)</h3>
+          <div class="text-xl font-bold text-green-600" id="fin-entradas">R$ 0,00</div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-amber-500">
+          <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">A Receber (Pendentes)</h3>
+          <div class="text-xl font-bold text-amber-500" id="fin-previsto">R$ 0,00</div>
+        </div>
+      </div>
+
+      <!-- Gráfico de Receitas -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <h3 class="text-xs font-bold text-slate-700 mb-4 text-center">Evolução de Contratos Aprovados</h3>
+        <div class="relative h-48 w-full">
+          <canvas id="graficoFinanceiro"></canvas>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -919,25 +980,23 @@ if ('serviceWorker' in navigator) {
     }
 
 function mudarAba(aba, registrarHistorico = true) {
-      const btnNovo = document.getElementById('tab-btn-novo');
-      const btnLista = document.getElementById('tab-btn-lista');
-      const abaNovo = document.getElementById('aba-novo');
-      const abaLista = document.getElementById('aba-lista');
+      const abas = ['novo', 'lista', 'clientes', 'financeiro'];
+      abas.forEach(id => {
+        const btn = document.getElementById('tab-btn-' + id);
+        const section = document.getElementById('aba-' + id);
+        if (id === aba) {
+          btn.className = "flex-1 py-3 flex flex-col sm:flex-row items-center justify-center gap-1 font-bold border-b-2 border-blue-700 text-blue-700 bg-blue-50/60 transition";
+          section.classList.remove('hidden');
+        } else {
+          btn.className = "flex-1 py-3 flex flex-col sm:flex-row items-center justify-center gap-1 font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
+          section.classList.add('hidden');
+        }
+      });
 
-      if(aba === 'novo') {
-        btnNovo.className = "flex-1 py-3 text-center font-bold text-sm border-b-2 border-blue-700 text-blue-700 bg-blue-50/60 transition";
-        btnLista.className = "flex-1 py-3 text-center font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
-        abaNovo.classList.remove('hidden');
-        abaLista.classList.add('hidden');
-      } else {
-        btnLista.className = "flex-1 py-3 text-center font-bold text-sm border-b-2 border-blue-700 text-blue-700 bg-blue-50/60 transition";
-        btnNovo.className = "flex-1 py-3 text-center font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
-        abaLista.classList.remove('hidden');
-        abaNovo.classList.add('hidden');
-        renderizarListaOrcamentos();
-      }
+      if (aba === 'lista') renderizarListaOrcamentos();
+      // Opcional por enquanto: if (aba === 'clientes') renderizarListaClientes();
+      // Opcional por enquanto: if (aba === 'financeiro') atualizarDashboardFinanceiro();
 
-      // Diz para o celular que o usuário "mudou de página"
       if (registrarHistorico) {
         history.pushState({ aba: aba }, '', '#' + aba);
       }
@@ -1203,31 +1262,43 @@ function mudarAba(aba, registrarHistorico = true) {
           // CRIA NOVO ORÇAMENTO NA NUVEM
           await window.setDoc(window.doc(window.db, "orcamentos", String(novoOrcamento.id)), novoOrcamento);
           
-          // CRIA O CLIENTE NO BANCO DE DADOS (Base para o Financeiro da Fase 2)
-          const qCli = window.query(window.collection(window.db, "clientes"), window.where("uid", "==", window.usuarioAtualId), window.where("whats", "==", novoOrcamento.cliente.whats));
-          const snapCli = await window.getDocs(qCli);
-          
-          if (snapCli.empty) {
-            await window.addDoc(window.collection(window.db, "clientes"), {
-              uid: window.usuarioAtualId,
-              nome: novoOrcamento.cliente.nome,
-              whats: novoOrcamento.cliente.whats,
-              endereco: novoOrcamento.cliente.endereco || '',
-              dataCadastro: new Date().toISOString()
+          // TENTA CRIAR O CLIENTE DE FORMA ISOLADA (Se falhar, não bloqueia o orçamento)
+          try {
+            // Usa apenas um filtro (uid) para evitar o erro de Índice do Firebase
+            const qCli = window.query(window.collection(window.db, "clientes"), window.where("uid", "==", window.usuarioAtualId));
+            const snapCli = await window.getDocs(qCli);
+            
+            // O JavaScript encarrega-se de verificar se o contacto (whats) já existe
+            let clienteExiste = false;
+            snapCli.forEach(doc => {
+              if (doc.data().whats === novoOrcamento.cliente.whats) {
+                clienteExiste = true;
+              }
             });
+            
+            if (!clienteExiste) {
+              await window.addDoc(window.collection(window.db, "clientes"), {
+                uid: window.usuarioAtualId,
+                nome: novoOrcamento.cliente.nome,
+                whats: novoOrcamento.cliente.whats,
+                endereco: novoOrcamento.cliente.endereco || '',
+                dataCadastro: new Date().toISOString()
+              });
+            }
+          } catch (erroCli) {
+            console.error("Aviso: Erro menor ao gerir o cliente na nuvem.", erroCli);
           }
         }
         
+        // Limpa o ecrã e muda de aba normalmente
         limparFormulario();
         mudarAba('lista');
-} catch (erro) {
+      } catch (erro) {
         console.error("Erro completo:", erro);
-        // ISSO VAI MOSTRAR O ERRO TÉCNICO EXATO NA SUA TELA
-        alert("O Firebase bloqueou pelo seguinte motivo: " + erro.message);
-        
-        const btnSalvar = document.getElementById('btn-salvar-orc');
+        alert("Erro ao guardar na nuvem: " + erro.message);
         btnSalvar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Salvar e Gerar Orçamento';
       }
+    }
 
     async function atualizarStatus(id, novoStatus) {
       // Atualiza visualmente rápido para não dar lag
