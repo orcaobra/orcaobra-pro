@@ -1220,12 +1220,14 @@ function mudarAba(aba, registrarHistorico = true) {
         
         limparFormulario();
         mudarAba('lista');
-      } catch (erro) {
-        console.error("Erro:", erro);
-        alert("Erro ao salvar na nuvem. Verifique sua conexão.");
+} catch (erro) {
+        console.error("Erro completo:", erro);
+        // ISSO VAI MOSTRAR O ERRO TÉCNICO EXATO NA SUA TELA
+        alert("O Firebase bloqueou pelo seguinte motivo: " + erro.message);
+        
+        const btnSalvar = document.getElementById('btn-salvar-orc');
         btnSalvar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Salvar e Gerar Orçamento';
       }
-    }
 
     async function atualizarStatus(id, novoStatus) {
       // Atualiza visualmente rápido para não dar lag
