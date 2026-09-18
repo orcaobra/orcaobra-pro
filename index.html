@@ -779,13 +779,35 @@ if ('serviceWorker' in navigator) {
       diaria: 250
     };
 
-   let orcamentos = JSON.parse(localStorage.getItem('orca_lista_v2')) || [];
+ let orcamentos = JSON.parse(localStorage.getItem('orca_lista_v2')) || [];
     
-    // ESSA É A PONTE QUE PERMITE O FIREBASE ATUALIZAR A TELA
+    // 1. O RESGATE: MISTURA OS DADOS DO CELULAR COM A NUVEM PARA NUNCA FICAR VAZIO
     window.atualizarListaNuvem = function(dadosNuvem) {
-      orcamentos = dadosNuvem;
+      const locais = JSON.parse(localStorage.getItem('orca_lista_v2')) || [];
+      const mapa = new Map();
+      
+      locais.forEach(o => mapa.set(o.id, o)); // Puxa do celular
+      dadosNuvem.forEach(o => mapa.set(o.id, o)); // Puxa da nuvem (tem prioridade)
+      
+      orcamentos = Array.from(mapa.values()).sort((a, b) => b.id - a.id);
       renderizarListaOrcamentos();
     };
+
+    // 2. BLOQUEIO DE FECHAMENTO: FAZ O BOTÃO VOLTAR DO CELULAR FUNCIONAR
+    history.replaceState({ aba: 'novo' }, '', '#novo');
+
+    window.addEventListener('popstate', (e) => {
+      // Se tiver modais abertos, o botão voltar apenas fecha eles
+      document.getElementById('modal-perfil').classList.add('hidden');
+      document.getElementById('modal-editar-contrato').classList.add('hidden');
+      
+      // Volta para a aba correta em vez de fechar o app
+      if (e.state && e.state.aba) {
+        mudarAba(e.state.aba, false);
+      } else {
+        mudarAba('novo', false);
+      }
+    });
     let servicosContador = 0;
     let clausulaDinamicaCount = 0;
     let deferredPrompt = null;
@@ -896,7 +918,7 @@ if ('serviceWorker' in navigator) {
       alert('Perfil atualizado com sucesso!');
     }
 
-    function mudarAba(aba) {
+function mudarAba(aba, registrarHistorico = true) {
       const btnNovo = document.getElementById('tab-btn-novo');
       const btnLista = document.getElementById('tab-btn-lista');
       const abaNovo = document.getElementById('aba-novo');
@@ -913,6 +935,11 @@ if ('serviceWorker' in navigator) {
         abaLista.classList.remove('hidden');
         abaNovo.classList.add('hidden');
         renderizarListaOrcamentos();
+      }
+
+      // Diz para o celular que o usuário "mudou de página"
+      if (registrarHistorico) {
+        history.pushState({ aba: aba }, '', '#' + aba);
       }
     }
 
