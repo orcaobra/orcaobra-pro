@@ -433,7 +433,7 @@
     window.mudarAbaAuth = function(aba) { if (aba === 'login') { document.getElementById('form-auth-login').classList.remove('hidden'); document.getElementById('form-auth-cad').classList.add('hidden'); document.getElementById('tab-auth-login').className = "flex-1 py-2 border-b-2 border-blue-800 text-blue-800"; document.getElementById('tab-auth-cad').className = "flex-1 py-2 border-b-2 border-transparent text-slate-400"; } else { document.getElementById('form-auth-cad').classList.remove('hidden'); document.getElementById('form-auth-login').classList.add('hidden'); document.getElementById('tab-auth-cad').className = "flex-1 py-2 border-b-2 border-blue-800 text-blue-800"; document.getElementById('tab-auth-login').className = "flex-1 py-2 border-b-2 border-transparent text-slate-400"; } };
   </script>
 
-  <!-- LÓGICA DO APLICATIVO -->
+ <!-- LÓGICA DO APLICATIVO -->
   <script>
     if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); }); }
     let perfil = JSON.parse(localStorage.getItem('orca_perfil_v2')) || { nome: 'Sua Empresa', m2: 30, ponto: 50, diaria: 250 };
@@ -444,19 +444,41 @@
     window.atualizarClientesNuvem = function(dados) { clientesBD = dados; if(!document.getElementById('aba-clientes').classList.contains('hidden')) renderizarListaClientes(); };
     window.atualizarTransacoesNuvem = function(dados) { transacoes = dados; if(!document.getElementById('aba-financeiro').classList.contains('hidden')) atualizarDashboardFinanceiro(); };
 
+    // CONTROLE DO BOTÃO VOLTAR DO CELULAR 
     history.replaceState({ aba: 'novo' }, '', '#novo');
-    window.addEventListener('popstate', (e) => { fecharModalContrato(); toggleModalPerfil(true); fecharModaisFinanceiro(); if (e.state && e.state.aba) { mudarAba(e.state.aba, false); } else { mudarAba('novo', false); } });
+    window.addEventListener('popstate', (e) => { 
+      // Se o usuário apertar voltar, esconde todos os modais primeiro
+      fecharModalContrato(); toggleModalPerfil(true); fecharModaisFinanceiro(); 
+      // E garante que ele fique na aba correta
+      if (e.state && e.state.aba) { mudarAba(e.state.aba, false); } else { mudarAba('novo', false); } 
+    });
 
     let servicosContador = 0; let orcamentoEditandoId = null;
 
     function inicializarAppGeral() {
       atualizarCabecalhoEmpresa(); carregarPerfilForm();
       if(document.querySelectorAll('[id^="card-servico-"]').length === 0) adicionarServico();
-      mudarTempoFin('mes'); // FORÇA CARREGAR O MÊS ATUAL NA INICIALIZAÇÃO
+      mudarTempoFin('mes');
     }
 
-    function toggleModalPerfil(forceClose = false) { const modal = document.getElementById('modal-perfil'); if(forceClose) { modal.classList.add('hidden'); return; } modal.classList.toggle('hidden'); }
-    function fecharModalContrato() { document.getElementById('modal-editar-contrato').classList.add('hidden'); }
+    // MODAL PERFIL COM HISTÓRICO FALSO
+    function toggleModalPerfil(forceClose = false) { 
+      const modal = document.getElementById('modal-perfil'); 
+      if(forceClose) { modal.classList.add('hidden'); return; } 
+      
+      if (modal.classList.contains('hidden')) {
+        history.pushState({ modal: true }, '', '#perfil');
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+        if(location.hash === '#perfil') history.back();
+      }
+    }
+
+    function fecharModalContrato() { 
+      document.getElementById('modal-editar-contrato').classList.add('hidden'); 
+      if(location.hash === '#contrato') history.back();
+    }
 
     function atualizarCabecalhoEmpresa() { const b = document.getElementById('header-logo-container'); const i = document.getElementById('header-logo-img'); if(perfil.logo) { i.src = perfil.logo; b.classList.remove('hidden'); } else { b.classList.add('hidden'); } }
     function carregarPerfilForm() { document.getElementById('prof-nome').value=perfil.nome||''; document.getElementById('prof-whats').value=perfil.whats||''; document.getElementById('prof-doc').value=perfil.doc||''; document.getElementById('prof-pix').value=perfil.pix||''; document.getElementById('prof-pix-titular').value=perfil.pixTitular||''; document.getElementById('prof-padrao-m2').value=perfil.m2||''; document.getElementById('prof-padrao-ponto').value=perfil.ponto||''; document.getElementById('prof-padrao-diaria').value=perfil.diaria||''; if(perfil.logo){ document.getElementById('preview-logo-img').src=perfil.logo; document.getElementById('preview-logo-img').classList.remove('hidden'); document.getElementById('preview-logo-icon').classList.add('hidden'); document.getElementById('btn-remover-logo').classList.remove('hidden'); } }
@@ -478,12 +500,8 @@
     }
 
     function adicionarServico() {
-      servicosContador++;
-      const id = servicosContador;
-      const container = document.getElementById('container-servicos');
-      const card = document.createElement('div');
-      card.id = `card-servico-${id}`;
-      card.className = "bg-slate-50 p-4 rounded-xl border border-slate-300 relative space-y-3 shadow-sm";
+      servicosContador++; const id = servicosContador; const container = document.getElementById('container-servicos');
+      const card = document.createElement('div'); card.id = `card-servico-${id}`; card.className = "bg-slate-50 p-4 rounded-xl border border-slate-300 relative space-y-3 shadow-sm";
       card.innerHTML = `
         <div class="flex justify-between items-center border-b border-slate-200 pb-2"><span class="text-xs font-bold text-blue-800 uppercase tracking-wide">Item #${id}</span><button onclick="removerServico(${id})" class="text-xs text-red-600 hover:text-red-800 font-semibold"><i class="fa-solid fa-trash mr-1"></i> Remover Item</button></div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -647,7 +665,7 @@
       }).join('');
     }
 
-    function popularTemplatePDF(orcamento) {
+    function popularTemplatePDF(orcamento) { /* MANTIDO IGUAL */
       const pdfLogoBox = document.getElementById('pdf-logo-container'); const pdfLogoImg = document.getElementById('pdf-logo-img'); if(perfil.logo) { pdfLogoImg.src = perfil.logo; pdfLogoBox.classList.remove('hidden'); } else { pdfLogoBox.classList.add('hidden'); }
       document.getElementById('pdf-prof-nome').innerText = perfil.nome || 'Prestador de Serviço'; document.getElementById('pdf-prof-doc').innerText = perfil.doc ? `CPF/CNPJ: ${perfil.doc}` : ''; document.getElementById('pdf-prof-whats').innerText = perfil.whats ? `WhatsApp: ${perfil.whats}` : ''; document.getElementById('pdf-prof-pix').innerText = perfil.pix || 'A combinar'; document.getElementById('pdf-prof-pix-titular').innerText = perfil.pixTitular || 'Não informado'; document.getElementById('pdf-data').innerText = `Data: ${orcamento.data}`; document.getElementById('pdf-cli-nome').innerText = orcamento.cliente.nome; document.getElementById('pdf-cli-whats').innerText = orcamento.cliente.whats; document.getElementById('pdf-cli-endereco').innerText = orcamento.cliente.endereco || 'Não informado'; document.getElementById('pdf-th-subtotal').innerText = orcamento.ocultarValores ? '' : 'Subtotal';
       const tbody = document.getElementById('pdf-tbody-servicos');
@@ -674,7 +692,11 @@
       document.getElementById('edit-ctr-c2').value = `A responsabilidade pelo fornecimento dos materiais de construção e acabamento está dividida conforme a seguir:\n${matTexto}`;
       document.getElementById('edit-ctr-c3').value = `Previsão de Execução: ${orcamento.condicoes.prazo || '10 dias úteis'} (sujeito a alterações em caso de chuvas extremas ou falta de material sob responsabilidade do cliente).`;
       document.getElementById('edit-ctr-c4').value = `O valor total da obra é de ${orcamento.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}. Pagamento: ${orcamento.condicoes.pagto}.`;
-      document.getElementById('edit-ctr-extras').value = ''; document.getElementById('container-clausulas-dinamicas').innerHTML = ''; clausulaDinamicaCount = 0; document.getElementById('modal-editar-contrato').classList.remove('hidden');
+      document.getElementById('edit-ctr-extras').value = ''; document.getElementById('container-clausulas-dinamicas').innerHTML = ''; clausulaDinamicaCount = 0; 
+      
+      // HISTÓRICO FALSO
+      history.pushState({ modal: true }, '', '#contrato');
+      document.getElementById('modal-editar-contrato').classList.remove('hidden');
     }
 
     function confirmarEGerarPDFContrato() {
@@ -708,10 +730,14 @@
       document.getElementById('modal-nova-transacao').classList.add('hidden');
       document.getElementById('form-novo-cliente').reset();
       document.getElementById('form-transacao').reset();
+      if(location.hash.includes('modal-')) history.back();
     }
 
     // --- CLIENTES ---
-    function abrirModalNovoCliente() { document.getElementById('modal-novo-cliente').classList.remove('hidden'); }
+    function abrirModalNovoCliente() { 
+      history.pushState({ modal: true }, '', '#modal-addcli');
+      document.getElementById('modal-novo-cliente').classList.remove('hidden'); 
+    }
 
     async function salvarClienteManual(e) {
       e.preventDefault();
@@ -813,6 +839,7 @@
 
     window.abrirHistoricoCliente = function(whatsPesquisa) {
       if(!whatsPesquisa) return;
+      history.pushState({ modal: true }, '', '#modal-histcli');
       document.getElementById('modal-historico-cliente').classList.remove('hidden');
       
       const orcsDoCliente = orcamentos.filter(o => o.cliente.whats === whatsPesquisa && (o.status === 'Aprovado' || o.status === 'Concluído'));
@@ -848,6 +875,7 @@
 
     // --- FINANCEIRO (LANÇAMENTOS MANUAIS) ---
     function abrirModalTransacao(tipo) {
+      history.pushState({ modal: true }, '', '#modal-transacao');
       document.getElementById('modal-nova-transacao').classList.remove('hidden');
       document.getElementById('trans-tipo').value = tipo;
       document.getElementById('titulo-modal-transacao').innerHTML = tipo === 'entrada' ? '<i class="fa-solid fa-arrow-down text-green-600"></i> Nova Entrada' : '<i class="fa-solid fa-arrow-up text-red-600"></i> Nova Saída';
@@ -859,7 +887,7 @@
         catSelect.innerHTML = `<option value="Material de Construção">Material de Construção</option><option value="Combustível / Transporte">Combustível / Transporte</option><option value="Ferramentas / Equipamentos">Ferramentas / Equipamentos</option><option value="Alimentação">Alimentação</option><option value="Pagamento de Ajudante/Equipe">Pagamento de Ajudante/Equipe</option><option value="Impostos / Taxas">Impostos / Taxas</option><option value="Outros">Outros</option>`;
       }
       
-      document.getElementById('trans-data').value = new Date().toISOString().split('T')[0]; // Preenche o dia atual por padrão
+      document.getElementById('trans-data').value = new Date().toISOString().split('T')[0]; 
     }
 
     async function salvarTransacao(e) {
