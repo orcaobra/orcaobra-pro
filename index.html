@@ -1168,4 +1168,19 @@
       let ent = 0; let sai = 0;
       const corpoTabela = transFiltradas.map(t => {
         const val = parseFloat(t.valor); t.tipo === 'entrada' ? ent += val : sai += val;
-        return [ new Date(t.data + "T00:00:00").toLocaleDateString('pt-BR'), t.tipo === 'entrada' ? 'Entrada' : 'Saída', t.categoria, t.cliente || '-', t.obs || '-
+        return [ new Date(t.data + "T00:00:00").toLocaleDateString('pt-BR'), t.tipo === 'entrada' ? 'Entrada' : 'Saída', t.categoria, t.cliente || '-', t.obs || '-', (t.tipo === 'entrada' ? '+' : '-') + ' R$ ' + val.toFixed(2) ];
+      });
+
+      doc.setFontSize(16); doc.setFont(undefined, 'bold'); doc.text("Relatório Financeiro de Obra", 14, 20);
+      doc.setFontSize(10); doc.setFont(undefined, 'normal'); doc.text(strPeriodo, 14, 26); doc.text(`Empresa: ${perfil.nome}`, 14, 32);
+
+      doc.setFillColor(241, 245, 249); doc.rect(14, 38, 182, 20, 'F');
+      doc.setFont(undefined, 'bold'); doc.text(`Total Entradas: R$ ${ent.toFixed(2)}`, 20, 46); doc.text(`Total Saídas: R$ ${sai.toFixed(2)}`, 20, 52); doc.text(`Saldo do Período: R$ ${(ent - sai).toFixed(2)}`, 110, 49);
+
+      doc.autoTable({ startY: 65, head: [['Data', 'Tipo', 'Categoria', 'Cliente', 'Descrição', 'Valor']], body: corpoTabela, theme: 'striped', headStyles: { fillColor: [30, 64, 175] }, styles: { fontSize: 8 }, columnStyles: { 5: { halign: 'right' } } });
+      doc.save(`Relatorio_Financeiro_${new Date().getTime()}.pdf`);
+    }
+
+  </script>
+</body>
+</html>
