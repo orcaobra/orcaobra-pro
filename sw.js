@@ -1,4 +1,4 @@
-const CACHE_NAME = 'orcaobra-v21'; 
+const CACHE_NAME = 'orcaobra-v22'; 
 const urlsToCache = [
   './',
   './index.html',
