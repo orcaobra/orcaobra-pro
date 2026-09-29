@@ -350,24 +350,28 @@
     </div>
   </div>
 
-  <div id="modal-historico-cliente" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2"><i class="fa-solid fa-address-book text-blue-700"></i> Ficha do Cliente</h3>
-        <button onclick="fecharModaisFinanceiro()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
-      </div>
-      <div>
-        <h4 id="view-cli-nome" class="font-bold text-xl text-blue-900">Nome</h4>
-        <p class="text-sm text-slate-500" id="view-cli-whats"></p>
-      </div>
-      <div class="border-t pt-3">
-        <h4 class="font-bold text-sm text-slate-700 mb-2">Orçamentos Vinculados</h4>
-        <div id="view-cli-orcamentos" class="space-y-2 mb-4"></div>
-        <h4 class="font-bold text-sm text-slate-700 mb-2 border-t pt-3">Lançamentos Financeiros (Pagamentos/Saídas)</h4>
-        <div id="view-cli-transacoes" class="space-y-2"></div>
-      </div>
+ <div id="modal-historico-cliente" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center border-b pb-2">
+      <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2"><i class="fa-solid fa-address-book text-blue-700"></i> Ficha do Cliente</h3>
+      <button onclick="fecharModaisFinanceiro()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+    </div>
+    <div>
+      <h4 id="view-cli-nome" class="font-bold text-xl text-blue-900">Nome</h4>
+      <p class="text-sm text-slate-500" id="view-cli-whats"></p>
+      <p class="text-xs text-slate-500 mt-1" id="view-cli-endereco"></p>
+    </div>
+    <button id="btn-novo-orc-do-cliente" onclick="criarOrcamentoParaClienteAtual()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow transition text-sm flex items-center justify-center gap-2">
+      <i class="fa-solid fa-plus-circle"></i> Criar Novo Orçamento para Este Cliente
+    </button>
+    <div class="border-t pt-3">
+      <h4 class="font-bold text-sm text-slate-700 mb-2">Orçamentos Vinculados</h4>
+      <div id="view-cli-orcamentos" class="space-y-2 mb-4"></div>
+      <h4 class="font-bold text-sm text-slate-700 mb-2 border-t pt-3">Lançamentos Financeiros (Pagamentos/Saídas)</h4>
+      <div id="view-cli-transacoes" class="space-y-2"></div>
     </div>
   </div>
+</div>
 
   <div id="modal-nova-transacao" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-2xl">
@@ -992,41 +996,75 @@ document.addEventListener('DOMContentLoaded', () => {
   if(filtroStatus) filtroStatus.addEventListener('change', renderizarListaOrcamentos);
 });
 
-    window.abrirHistoricoCliente = function(whatsPesquisa) {
-      if(!whatsPesquisa) return;
-      history.pushState({ modal: true }, '', '#modal-histcli');
-      document.getElementById('modal-historico-cliente').classList.remove('hidden');
-      
-      const orcsDoCliente = orcamentos.filter(o => o.cliente.whats === whatsPesquisa && (o.status === 'Aprovado' || o.status === 'Concluído'));
-      const nomeC = orcsDoCliente.length > 0 ? orcsDoCliente[0].cliente.nome : clientesBD.find(c => c.whats === whatsPesquisa)?.nome || 'Cliente Cadastrado';
-      
-      document.getElementById('view-cli-nome').innerText = nomeC;
-      document.getElementById('view-cli-whats').innerText = "Whats: " + whatsPesquisa;
-      
-      const boxOrc = document.getElementById('view-cli-orcamentos');
-      if(orcsDoCliente.length === 0) { boxOrc.innerHTML = '<p class="text-xs text-slate-500">Nenhum orçamento aprovado para este cliente.</p>'; } else {
-        boxOrc.innerHTML = orcsDoCliente.map(o => `
-          <div class="bg-white p-3 rounded border border-slate-200 shadow-sm flex justify-between items-center">
-            <div><p class="text-xs font-bold text-slate-700">Data: ${o.data}</p><p class="text-[10px] text-slate-500">${o.servicos.map(s => (s.tipo === 'Outros Serviços' && s.tipoCustom) ? s.tipoCustom : s.tipo).join(', ')}</p></div>
-            <p class="text-xs font-bold text-blue-800">${o.totalGeral.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</p>
-          </div>
-        `).join('');
-      }
+ window.abrirHistoricoCliente = function(whatsPesquisa) {
+  if(!whatsPesquisa) return;
+  history.pushState({ modal: true }, '', '#modal-histcli');
+  document.getElementById('modal-historico-cliente').classList.remove('hidden');
+  
+  const orcsDoCliente = orcamentos.filter(o => o.cliente.whats === whatsPesquisa && (o.status === 'Aprovado' || o.status === 'Concluído'));
+  const clienteBD = clientesBD.find(c => c.whats === whatsPesquisa);
+  const nomeC = orcsDoCliente.length > 0 ? orcsDoCliente[0].cliente.nome : clienteBD?.nome || 'Cliente Cadastrado';
+  const enderecoC = orcsDoCliente.length > 0 ? orcsDoCliente[0].cliente.endereco : clienteBD?.endereco || '';
+  
+  document.getElementById('view-cli-nome').innerText = nomeC;
+  document.getElementById('view-cli-whats').innerText = "Whats: " + whatsPesquisa;
+  document.getElementById('view-cli-endereco').innerText = enderecoC ? "Endereço: " + enderecoC : '';
 
-      const transDoCliente = transacoes.filter(t => t.cliente === nomeC);
-      const boxTrans = document.getElementById('view-cli-transacoes');
-      if(transDoCliente.length === 0) { boxTrans.innerHTML = '<p class="text-xs text-slate-500">Nenhum lançamento financeiro para este cliente.</p>'; } else {
-        transDoCliente.sort((a,b) => new Date(b.data) - new Date(a.data));
-        boxTrans.innerHTML = transDoCliente.map(t => {
-          const cor = t.tipo === 'entrada' ? 'text-green-700' : 'text-red-700';
-          const sinal = t.tipo === 'entrada' ? '+' : '-';
-          return `<div class="bg-slate-50 p-2 rounded border border-slate-200 shadow-sm flex justify-between items-center mt-1">
-            <div><p class="text-[11px] font-bold text-slate-700">${new Date(t.data+"T00:00:00").toLocaleDateString('pt-BR')} - ${t.categoria}</p></div>
-            <p class="text-[11px] font-bold ${cor}">${sinal} R$ ${parseFloat(t.valor).toFixed(2)}</p>
-          </div>`;
-        }).join('');
-      }
-    }
+  // Guarda o cliente atual para o botão "Criar Orçamento"
+  window.clienteAtualParaOrcamento = { nome: nomeC, whats: whatsPesquisa, endereco: enderecoC };
+  
+  const boxOrc = document.getElementById('view-cli-orcamentos');
+  if(orcsDoCliente.length === 0) { 
+    boxOrc.innerHTML = '<p class="text-xs text-slate-500">Nenhum orçamento aprovado para este cliente.</p>'; 
+  } else {
+    boxOrc.innerHTML = orcsDoCliente.map(o => `
+      <div class="bg-white p-3 rounded border border-slate-200 shadow-sm flex justify-between items-center">
+        <div><p class="text-xs font-bold text-slate-700">Nº ${String(o.numero || 0).padStart(4, '0')} • ${o.data}</p><p class="text-[10px] text-slate-500">${o.servicos.map(s => (s.tipo === 'Outros Serviços' && s.tipoCustom) ? s.tipoCustom : s.tipo).join(', ')}</p></div>
+        <p class="text-xs font-bold text-blue-800">${o.totalGeral.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</p>
+      </div>
+    `).join('');
+  }
+
+  const transDoCliente = transacoes.filter(t => t.cliente === nomeC);
+  const boxTrans = document.getElementById('view-cli-transacoes');
+  if(transDoCliente.length === 0) { 
+    boxTrans.innerHTML = '<p class="text-xs text-slate-500">Nenhum lançamento financeiro para este cliente.</p>'; 
+  } else {
+    transDoCliente.sort((a,b) => new Date(b.data) - new Date(a.data));
+    boxTrans.innerHTML = transDoCliente.map(t => {
+      const cor = t.tipo === 'entrada' ? 'text-green-700' : 'text-red-700';
+      const sinal = t.tipo === 'entrada' ? '+' : '-';
+      return `<div class="bg-slate-50 p-2 rounded border border-slate-200 shadow-sm flex justify-between items-center mt-1">
+        <div><p class="text-[11px] font-bold text-slate-700">${new Date(t.data+"T00:00:00").toLocaleDateString('pt-BR')} - ${t.categoria}</p></div>
+        <p class="text-[11px] font-bold ${cor}">${sinal} R$ ${parseFloat(t.valor).toFixed(2)}</p>
+      </div>`;
+    }).join('');
+  }
+}
+window.criarOrcamentoParaClienteAtual = function() {
+  const cli = window.clienteAtualParaOrcamento;
+  if (!cli) { alert("Cliente não identificado."); return; }
+
+  const temRascunho = document.getElementById('cli-nome').value.trim() !== '';
+  if (temRascunho && !confirm(`Você tem um orçamento em andamento.\nDeseja descartá-lo e começar um novo para ${cli.nome}?`)) {
+    return;
+  }
+
+  fecharModaisFinanceiro();
+  limparFormulario();
+
+  document.getElementById('cli-nome').value = cli.nome || '';
+  document.getElementById('cli-whats').value = cli.whats || '';
+  document.getElementById('cli-endereco').value = cli.endereco || '';
+
+  mudarAba('novo');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  setTimeout(() => {
+    const primeiroServico = document.querySelector('[id^="serv-tipo-"]');
+    if (primeiroServico) primeiroServico.focus();
+  }, 400);
+}
 
     // --- FINANCEIRO (LANÇAMENTOS MANUAIS) ---
     function abrirModalTransacao(tipo) {
