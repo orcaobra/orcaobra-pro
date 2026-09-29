@@ -1107,8 +1107,7 @@ window.abrirHistoricoCliente = function(whatsPesquisa) {
           </div>
           <div class="text-right">
             <p class="text-xs font-bold text-amber-900">${totalAprovado.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</p>
-            <p class="text-[10px] font-bold ${aReceber > 0 ? 'text-red-700' : 'text-green-700'}">Saldo a receber: ${aReceber.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</p>
-          </div>
+           <p class="text-[10px] font-bold ${aReceber >= 0 ? 'text-green-700' : 'text-red-700'}">Saldo a receber: ${aReceber.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</p>
         </div>
       ` : ''}
     `;
