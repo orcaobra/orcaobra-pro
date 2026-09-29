@@ -368,6 +368,7 @@
       <h4 class="font-bold text-sm text-slate-700 mb-2">Orçamentos Vinculados</h4>
       <div id="view-cli-orcamentos" class="space-y-2 mb-4"></div>
       <h4 class="font-bold text-sm text-slate-700 mb-2 border-t pt-3">Lançamentos Financeiros (Pagamentos/Saídas)</h4>
+      <div id="view-cli-resumo"></div>
       <div id="view-cli-transacoes" class="space-y-2"></div>
     </div>
   </div>
@@ -996,51 +997,132 @@ document.addEventListener('DOMContentLoaded', () => {
   if(filtroStatus) filtroStatus.addEventListener('change', renderizarListaOrcamentos);
 });
 
- window.abrirHistoricoCliente = function(whatsPesquisa) {
+window.abrirHistoricoCliente = function(whatsPesquisa) {
   if(!whatsPesquisa) return;
   history.pushState({ modal: true }, '', '#modal-histcli');
   document.getElementById('modal-historico-cliente').classList.remove('hidden');
   
-  const orcsDoCliente = orcamentos.filter(o => o.cliente.whats === whatsPesquisa && (o.status === 'Aprovado' || o.status === 'Concluído'));
+  // 🆕 Mostra TODOS os orçamentos (não só aprovados), ordenados do mais recente
+  const orcsDoCliente = orcamentos
+    .filter(o => o.cliente.whats === whatsPesquisa)
+    .sort((a, b) => {
+      const nA = parseInt(a.numero) || 0;
+      const nB = parseInt(b.numero) || 0;
+      if (nA !== nB) return nB - nA;
+      return (b.id || 0) - (a.id || 0);
+    });
+  
   const clienteBD = clientesBD.find(c => c.whats === whatsPesquisa);
-  const nomeC = orcsDoCliente.length > 0 ? orcsDoCliente[0].cliente.nome : clienteBD?.nome || 'Cliente Cadastrado';
-  const enderecoC = orcsDoCliente.length > 0 ? orcsDoCliente[0].cliente.endereco : clienteBD?.endereco || '';
+  const nomeC = clienteBD?.nome || (orcsDoCliente.length > 0 ? orcsDoCliente[0].cliente.nome : 'Cliente Cadastrado');
+  const enderecoC = clienteBD?.endereco || (orcsDoCliente.length > 0 ? orcsDoCliente[0].cliente.endereco : '');
   
   document.getElementById('view-cli-nome').innerText = nomeC;
   document.getElementById('view-cli-whats').innerText = "Whats: " + whatsPesquisa;
   document.getElementById('view-cli-endereco').innerText = enderecoC ? "Endereço: " + enderecoC : '';
 
-  // Guarda o cliente atual para o botão "Criar Orçamento"
   window.clienteAtualParaOrcamento = { nome: nomeC, whats: whatsPesquisa, endereco: enderecoC };
   
+  // ============================================
+  // ORÇAMENTOS COM ETIQUETA DE STATUS
+  // ============================================
   const boxOrc = document.getElementById('view-cli-orcamentos');
-  if(orcsDoCliente.length === 0) { 
-    boxOrc.innerHTML = '<p class="text-xs text-slate-500">Nenhum orçamento aprovado para este cliente.</p>'; 
+  if(orcsDoCliente.length === 0) {
+    boxOrc.innerHTML = '<p class="text-xs text-slate-500">Nenhum orçamento para este cliente ainda.</p>';
   } else {
-    boxOrc.innerHTML = orcsDoCliente.map(o => `
-      <div class="bg-white p-3 rounded border border-slate-200 shadow-sm flex justify-between items-center">
-        <div><p class="text-xs font-bold text-slate-700">Nº ${String(o.numero || 0).padStart(4, '0')} • ${o.data}</p><p class="text-[10px] text-slate-500">${o.servicos.map(s => (s.tipo === 'Outros Serviços' && s.tipoCustom) ? s.tipoCustom : s.tipo).join(', ')}</p></div>
-        <p class="text-xs font-bold text-blue-800">${o.totalGeral.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</p>
-      </div>
-    `).join('');
-  }
-
-  const transDoCliente = transacoes.filter(t => t.cliente === nomeC);
-  const boxTrans = document.getElementById('view-cli-transacoes');
-  if(transDoCliente.length === 0) { 
-    boxTrans.innerHTML = '<p class="text-xs text-slate-500">Nenhum lançamento financeiro para este cliente.</p>'; 
-  } else {
-    transDoCliente.sort((a,b) => new Date(b.data) - new Date(a.data));
-    boxTrans.innerHTML = transDoCliente.map(t => {
-      const cor = t.tipo === 'entrada' ? 'text-green-700' : 'text-red-700';
-      const sinal = t.tipo === 'entrada' ? '+' : '-';
-      return `<div class="bg-slate-50 p-2 rounded border border-slate-200 shadow-sm flex justify-between items-center mt-1">
-        <div><p class="text-[11px] font-bold text-slate-700">${new Date(t.data+"T00:00:00").toLocaleDateString('pt-BR')} - ${t.categoria}</p></div>
-        <p class="text-[11px] font-bold ${cor}">${sinal} R$ ${parseFloat(t.valor).toFixed(2)}</p>
-      </div>`;
+    const statusColors = { 
+      'Pendente': 'bg-amber-100 text-amber-900', 
+      'Aprovado': 'bg-green-100 text-green-900', 
+      'Recusado': 'bg-red-100 text-red-900', 
+      'Concluído': 'bg-blue-100 text-blue-900' 
+    };
+    boxOrc.innerHTML = orcsDoCliente.map(o => {
+      const status = o.status || 'Pendente';
+      const cor = statusColors[status] || statusColors['Pendente'];
+      return `
+        <div class="bg-white p-3 rounded border border-slate-200 shadow-sm flex justify-between items-center gap-2">
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <p class="text-xs font-bold text-slate-700">Nº ${String(o.numero || 0).padStart(4, '0')}</p>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${cor}">${status}</span>
+              <span class="text-[10px] text-slate-400">${o.data}</span>
+            </div>
+            <p class="text-[10px] text-slate-500 mt-0.5 truncate">${o.servicos.map(s => (s.tipo === 'Outros Serviços' && s.tipoCustom) ? s.tipoCustom : s.tipo).join(', ')}</p>
+          </div>
+          <p class="text-xs font-bold text-blue-800 shrink-0">${o.totalGeral.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</p>
+        </div>
+      `;
     }).join('');
   }
-}
+
+  // ============================================
+  // LANÇAMENTOS + RESUMO DE SALDO DO CLIENTE
+  // ============================================
+  const transDoCliente = transacoes.filter(t => t.cliente === nomeC);
+  const boxTrans = document.getElementById('view-cli-transacoes');
+  const boxResumo = document.getElementById('view-cli-resumo');
+  
+  if(transDoCliente.length === 0) {
+    if (boxResumo) boxResumo.innerHTML = '';
+    boxTrans.innerHTML = '<p class="text-xs text-slate-500">Nenhum lançamento financeiro para este cliente.</p>';
+    return;
+  }
+  
+  transDoCliente.sort((a,b) => new Date(b.data) - new Date(a.data));
+  
+  // Cálculos
+  let totalEnt = 0, totalSai = 0;
+  transDoCliente.forEach(t => {
+    const v = parseFloat(t.valor) || 0;
+    if (t.tipo === 'entrada') totalEnt += v; else totalSai += v;
+  });
+  const saldo = totalEnt - totalSai;
+  
+  const totalAprovado = orcsDoCliente
+    .filter(o => o.status === 'Aprovado' || o.status === 'Concluído')
+    .reduce((sum, o) => sum + (o.totalGeral || 0), 0);
+  const aReceber = totalAprovado - totalEnt;
+  
+  // Resumo visual
+  if (boxResumo) {
+    boxResumo.innerHTML = `
+      <div class="grid grid-cols-3 gap-2 mb-3">
+        <div class="bg-green-50 p-2 rounded-lg border border-green-200 text-center">
+          <p class="text-[9px] font-bold text-green-800 uppercase">Recebido</p>
+          <p class="text-xs font-bold text-green-700">${totalEnt.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</p>
+        </div>
+        <div class="bg-red-50 p-2 rounded-lg border border-red-200 text-center">
+          <p class="text-[9px] font-bold text-red-800 uppercase">Gasto</p>
+          <p class="text-xs font-bold text-red-700">${totalSai.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</p>
+        </div>
+        <div class="bg-blue-50 p-2 rounded-lg border border-blue-200 text-center">
+          <p class="text-[9px] font-bold text-blue-800 uppercase">Saldo</p>
+          <p class="text-xs font-bold text-blue-700">${saldo.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</p>
+        </div>
+      </div>
+      ${totalAprovado > 0 ? `
+        <div class="bg-amber-50 p-2.5 rounded-lg border border-amber-200 mb-3 flex justify-between items-center">
+          <div>
+            <p class="text-[10px] font-bold text-amber-900 uppercase">Total Aprovado</p>
+            <p class="text-[10px] text-amber-700">Valor contratado pelo cliente</p>
+          </div>
+          <div class="text-right">
+            <p class="text-xs font-bold text-amber-900">${totalAprovado.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</p>
+            <p class="text-[10px] font-bold ${aReceber > 0 ? 'text-red-700' : 'text-green-700'}">Saldo a receber: ${aReceber.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</p>
+          </div>
+        </div>
+      ` : ''}
+    `;
+  }
+  
+  boxTrans.innerHTML = transDoCliente.map(t => {
+    const cor = t.tipo === 'entrada' ? 'text-green-700' : 'text-red-700';
+    const sinal = t.tipo === 'entrada' ? '+' : '-';
+    return `<div class="bg-slate-50 p-2 rounded border border-slate-200 shadow-sm flex justify-between items-center mt-1">
+      <div><p class="text-[11px] font-bold text-slate-700">${new Date(t.data+"T00:00:00").toLocaleDateString('pt-BR')} - ${t.categoria}</p></div>
+      <p class="text-[11px] font-bold ${cor}">${sinal} R$ ${parseFloat(t.valor).toFixed(2)}</p>
+    </div>`;
+  }).join('');
+};
 window.criarOrcamentoParaClienteAtual = function() {
   const cli = window.clienteAtualParaOrcamento;
   if (!cli) { alert("Cliente não identificado."); return; }
@@ -1050,21 +1132,39 @@ window.criarOrcamentoParaClienteAtual = function() {
     return;
   }
 
-  fecharModaisFinanceiro();
+  // Fecha TODOS os modais visualmente (sem mexer no histórico)
+  ['modal-historico-cliente','modal-editar-cliente','modal-novo-cliente','modal-nova-transacao'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
+
+  // Limpa os formulários auxiliares
+  ['form-novo-cliente','form-editar-cliente','form-transacao'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.reset();
+  });
+
+  // Limpa o formulário de orçamento
   limparFormulario();
 
+  // Preenche com os dados do cliente
   document.getElementById('cli-nome').value = cli.nome || '';
   document.getElementById('cli-whats').value = cli.whats || '';
   document.getElementById('cli-endereco').value = cli.endereco || '';
 
-  mudarAba('novo');
+  // Substitui o hash SEM adicionar entrada no histórico
+  history.replaceState({ aba: 'novo' }, '', '#novo');
+
+  // Troca para a aba Novo SEM registrar histórico (já foi trocado acima)
+  mudarAba('novo', false);
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   setTimeout(() => {
     const primeiroServico = document.querySelector('[id^="serv-tipo-"]');
     if (primeiroServico) primeiroServico.focus();
   }, 400);
-}
+};
 
     // --- FINANCEIRO (LANÇAMENTOS MANUAIS) ---
     function abrirModalTransacao(tipo) {
