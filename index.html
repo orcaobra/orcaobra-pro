@@ -415,8 +415,8 @@
       </div>
       <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200"><h2 class="font-bold text-slate-700 mb-0.5 border-b pb-0.5 text-[10px] uppercase tracking-wider">Dados do Cliente</h2><p><strong>Cliente:</strong> <span id="pdf-cli-nome"></span> | <strong>WhatsApp:</strong> <span id="pdf-cli-whats"></span></p><p><strong>Endereço da Obra:</strong> <span id="pdf-cli-endereco"></span></p></div>
       <div><h2 class="font-bold text-slate-700 mb-1 border-b pb-0.5 text-[10px] uppercase tracking-wider">Serviços e Materiais</h2><table class="w-full border-collapse"><thead><tr class="bg-slate-100 border-b text-left text-[10px] uppercase"><th class="p-1">Especialidade / Detalhes</th><th class="p-1">Métrica</th><th id="pdf-th-subtotal" class="p-1 text-right">Subtotal</th></tr></thead><tbody id="pdf-tbody-servicos"></tbody></table></div>
-      <div class="grid grid-cols-2 gap-2"><div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-[10px] space-y-0.5"><p><strong>Prazo Estimado:</strong> <span id="pdf-cond-prazo"></span></p><p><strong>Forma de Pagamento:</strong> <span id="pdf-cond-pagto"></span></p><p><strong>Validade do Orçamento:</strong> <span id="pdf-cond-validade"></span></p><p><strong>Chave Pix:</strong> <span id="pdf-prof-pix"></span> (<span id="pdf-prof-pix-titular"></span>)</p></div><div class="bg-blue-50 p-2 rounded-lg border border-blue-200 flex flex-col justify-center text-right"><span class="text-[9px] text-blue-800 font-bold uppercase">VALOR TOTAL DO ORÇAMENTO</span><span id="pdf-valor-final" class="text-xl font-black text-blue-900">R$ 0,00</span></div></div>
-      <div id="pdf-footer-garantia" class="border-t pt-1.5 text-center text-[8px] text-slate-400">Garantia.</div>
+      <div class="grid grid-cols-2 gap-2 avoid-break"><div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-[10px] space-y-0.5"><p><strong>Prazo Estimado:</strong> <span id="pdf-cond-prazo"></span></p><p><strong>Forma de Pagamento:</strong> <span id="pdf-cond-pagto"></span></p><p><strong>Validade do Orçamento:</strong> <span id="pdf-cond-validade"></span></p><p><strong>Chave Pix:</strong> <span id="pdf-prof-pix"></span> (<span id="pdf-prof-pix-titular"></span>)</p></div><div class="bg-blue-50 p-2 rounded-lg border border-blue-200 flex flex-col justify-center text-right"><span class="text-[9px] text-blue-800 font-bold uppercase">VALOR TOTAL DO ORÇAMENTO</span><span id="pdf-valor-final" class="text-xl font-black text-blue-900">R$ 0,00</span></div></div>
+      <div id="pdf-footer-garantia" class="border-t pt-2 mt-2 text-center text-[9px] text-slate-500 avoid-break">Garantia.</div>
     </div>
   </div>
 
@@ -845,15 +845,20 @@ document.getElementById('pdf-footer-garantia').innerHTML = textoRodape + (respon
       const element = document.getElementById('contrato-template'); const opt = { margin: [0.5, 0.4, 0.5, 0.4], filename: `Contrato_${orcamento.cliente.nome.replace(/\s+/g, '_')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } }; html2pdf().set(opt).from(element).save();
     }
 
-    function gerarPDF(id) {
-      const orcamento = orcamentos.find(item => item.id === id); if(!orcamento) return; popularTemplatePDF(orcamento); const element = document.getElementById('pdf-template');
-      const opt = { margin: [0.3, 0.3, 0.3, 0.3], filename: `Orcamento_${orcamento.cliente.nome.replace(/\s+/g, '_')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } }; html2pdf().set(opt).from(element).save();
-    }
-
-    function enviarWhatsApp(id) { const orcamento = orcamentos.find(item => item.id === id); if(!orcamento) return; const num = orcamento.cliente.whats.replace(/\D/g, ''); const texto = `Olá *${orcamento.cliente.nome}*!\n\nConforme conversamos, estou enviando o documento detalhado da sua obra.\n\n*Valor Total:* ${orcamento.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n*Validade:* ${orcamento.condicoes.validade}\n\nQualquer dúvida estou à disposição!`; window.open(`https://api.whatsapp.com/send?phone=55${num}&text=${encodeURIComponent(texto)}`, '_blank'); }
-    function adicionarClausulaDinamica() { clausulaDinamicaCount++; const container = document.getElementById('container-clausulas-dinamicas'); const div = document.createElement('div'); div.id = `box-clausula-din-${clausulaDinamicaCount}`; div.className = "space-y-1 bg-slate-50 p-2 rounded border border-slate-200"; div.innerHTML = `<div class="flex justify-between items-center mb-1"><label class="block font-bold text-slate-700 uppercase text-[10px]">Cláusula Extra Adicional</label><button onclick="removerClausulaDinamica(${clausulaDinamicaCount})" class="text-red-500 hover:text-red-700 text-[10px] font-bold"><i class="fa-solid fa-trash"></i> Remover</button></div><textarea id="edit-ctr-dinamica-${clausulaDinamicaCount}" rows="2" class="w-full border rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none"></textarea>`; container.appendChild(div); }
-    function removerClausulaDinamica(id) { const box = document.getElementById(`box-clausula-din-${id}`); if (box) box.remove(); }
-
+ function gerarPDF(id) {
+  const orcamento = orcamentos.find(item => item.id === id); if(!orcamento) return;
+  popularTemplatePDF(orcamento);
+  const element = document.getElementById('pdf-template');
+  const opt = {
+    margin: [0.3, 0.3, 0.3, 0.3],
+    filename: `Orcamento_${orcamento.cliente.nome.replace(/\s+/g, '_')}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'] }  // ← AQUI a mudança
+  };
+  html2pdf().set(opt).from(element).save();
+}
     // ==========================================
     // FASE 3: INTELIGÊNCIA FINANCEIRA MANUAIS E CLIENTES APROVADOS
     // ==========================================
