@@ -842,7 +842,7 @@ document.getElementById('pdf-footer-garantia').innerHTML = textoRodape + (respon
       document.querySelectorAll('[id^="edit-ctr-dinamica-"]').forEach(ta => { const text = ta.value.trim(); if(text) { dynContainer.innerHTML += `<div class="mt-2"><h3 class="font-bold text-slate-900 uppercase text-[11px] border-b pb-1 mb-1.5">CLÁUSULA ${numClausulaAtual} – DISPOSIÇÃO ADICIONAL</h3><p class="whitespace-pre-line text-justify">${text}</p></div>`; numClausulaAtual++; } });
       const tempoGarantia = orcamento.condicoes.garantia || '90 dias'; document.getElementById('out-ctr-garantia').innerText = `Integram este contrato as especificações acordadas por WhatsApp. A CONTRATADA concede a garantia legal de ${tempoGarantia} a contar da data de finalização e entrega da obra. Esta garantia cobre exclusivamente defeitos ou falhas decorrentes da execução do serviço prestado.`; document.getElementById('ctr-pix').innerText = perfil.pix || 'A combinar'; document.getElementById('ctr-pix-titular').innerText = perfil.pixTitular || 'Não informado'; document.getElementById('ctr-ass-cli').innerText = orcamento.cliente.nome; document.getElementById('ctr-ass-prof').innerText = perfil.nome || 'CONTRATADA';
       fecharModalContrato();
-      const element = document.getElementById('contrato-template'); const opt = { margin: [0.5, 0.4, 0.5, 0.4], filename: `Contrato_${orcamento.cliente.nome.replace(/\s+/g, '_')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } }; html2pdf().set(opt).from(element).save();
+      const element = document.getElementById('contrato-template'); const opt = { margin: [0.5, 0.4, 0.5, 0.4], filename: `Contrato_${orcamento.cliente.nome.replace(/\s+/g, '_')}#${String(orcamento.numero || 0).padStart(4, '0')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } }; html2pdf().set(opt).from(element).save();
     }
 
  function gerarPDF(id) {
@@ -851,7 +851,7 @@ document.getElementById('pdf-footer-garantia').innerHTML = textoRodape + (respon
   const element = document.getElementById('pdf-template');
   const opt = {
     margin: [0.3, 0.3, 0.3, 0.3],
-    filename: `Orcamento_${orcamento.cliente.nome.replace(/\s+/g, '_')}.pdf`,
+    filename: `Cliente_${orcamento.cliente.nome.replace(/\s+/g, '_')}#${String(orcamento.numero || 0).padStart(4, '0')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
