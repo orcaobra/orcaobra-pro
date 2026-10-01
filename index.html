@@ -203,7 +203,7 @@
       </div>
 
       <div class="flex gap-2 mb-4 bg-white p-2 rounded-xl shadow-sm border border-slate-200">
-        <button class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:bg-slate-100" id="btn-fin-semana" onclick="mudarTempoFin('semana')">Semana</button>
+        <button class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:bg-slate-100" id="btn-fin-total" onclick="mudarTempoFin('total')">Total</button>
         <button class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-blue-800 text-white shadow" id="btn-fin-mes" onclick="mudarTempoFin('mes')">Mês</button>
         <button class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:bg-slate-100" id="btn-fin-ano" onclick="mudarTempoFin('ano')">Ano</button>
       </div>
@@ -505,7 +505,7 @@
     function inicializarAppGeral() {
       atualizarCabecalhoEmpresa(); carregarPerfilForm();
       if(document.querySelectorAll('[id^="card-servico-"]').length === 0) adicionarServico();
-      mudarTempoFin('mes'); 
+     mudarTempoFin('total'); 
     }
 
     function toggleModalPerfil(forceClose = false) { 
@@ -1255,31 +1255,31 @@ window.criarOrcamentoParaClienteAtual = function() {
     let pieChartFinanceiroInst = null;
     let barChartFinanceiroInst = null;
 
-    function mudarTempoFin(tempo) {
-      const dateNow = new Date();
-      if(tempo === 'semana') {
-        const prim = new Date(dateNow.setDate(dateNow.getDate() - dateNow.getDay()));
-        const ult = new Date(dateNow.setDate(dateNow.getDate() - dateNow.getDay() + 6));
-        document.getElementById('fin-filtro-inicio').value = prim.toISOString().split('T')[0];
-        document.getElementById('fin-filtro-fim').value = ult.toISOString().split('T')[0];
-      } else if (tempo === 'mes') {
-        const dNow = new Date();
-        document.getElementById('fin-filtro-inicio').value = `${dNow.getFullYear()}-${String(dNow.getMonth() + 1).padStart(2, '0')}-01`;
-        document.getElementById('fin-filtro-fim').value = new Date(dNow.getFullYear(), dNow.getMonth() + 1, 0).toISOString().split('T')[0];
-      } else if (tempo === 'ano') {
-        document.getElementById('fin-filtro-inicio').value = `${dateNow.getFullYear()}-01-01`;
-        document.getElementById('fin-filtro-fim').value = `${dateNow.getFullYear()}-12-31`;
-      }
-      
-      const botoes = ['semana', 'mes', 'ano'];
-      botoes.forEach(b => {
-        const btn = document.getElementById('btn-fin-' + b);
-        if(!btn) return;
-        if (b === tempo) { btn.className = "flex-1 py-1.5 text-xs font-bold rounded-lg bg-blue-800 text-white shadow"; } 
-        else { btn.className = "flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:bg-slate-100"; }
-      });
-      atualizarDashboardFinanceiro();
-    }
+function mudarTempoFin(tempo) {
+  const dateNow = new Date();
+  
+  if (tempo === 'total') {
+    // Total: limpa os filtros de data para mostrar tudo desde o primeiro lançamento
+    document.getElementById('fin-filtro-inicio').value = '';
+    document.getElementById('fin-filtro-fim').value = '';
+  } else if (tempo === 'mes') {
+    const dNow = new Date();
+    document.getElementById('fin-filtro-inicio').value = `${dNow.getFullYear()}-${String(dNow.getMonth() + 1).padStart(2, '0')}-01`;
+    document.getElementById('fin-filtro-fim').value = new Date(dNow.getFullYear(), dNow.getMonth() + 1, 0).toISOString().split('T')[0];
+  } else if (tempo === 'ano') {
+    document.getElementById('fin-filtro-inicio').value = `${dateNow.getFullYear()}-01-01`;
+    document.getElementById('fin-filtro-fim').value = `${dateNow.getFullYear()}-12-31`;
+  }
+  
+  const botoes = ['total', 'mes', 'ano'];
+  botoes.forEach(b => {
+    const btn = document.getElementById('btn-fin-' + b);
+    if(!btn) return;
+    if (b === tempo) { btn.className = "flex-1 py-1.5 text-xs font-bold rounded-lg bg-blue-800 text-white shadow"; } 
+    else { btn.className = "flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:bg-slate-100"; }
+  });
+  atualizarDashboardFinanceiro();
+}
 
     window.atualizarDashboardFinanceiro = function() {
       const fInicio = document.getElementById('fin-filtro-inicio').value;
