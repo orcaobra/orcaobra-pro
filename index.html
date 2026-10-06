@@ -1,14 +1,3 @@
-Quase perfeito! Você acertou em cheio no **Passo 1** e no **Passo 3** (a `div` invisível e o `page-break-inside: avoid;` estão nos lugares exatos).
-
-No entanto, aconteceram dois probleminhas no seu ficheiro:
-1. No **Passo 2**, faltou colocar o `'avoid-all'` dentro da função `gerarPDF`.
-2. **O problema maior:** Ao tentar colar as partes, o seu editor acabou duplicando os blocos de `<script>` lá no final do ficheiro. Se reparar no seu código, a palavra `<!-- FIREBASE E SCRIPTS PRINCIPAIS -->` aparece 3 vezes repetida! Isso faz com que a aplicação crashe e pare de funcionar por completo, pois o navegador não sabe qual dos 3 códigos deve ler.
-
-Para não haver qualquer risco e você não perder tempo procurando linha por linha, **eu fiz uma limpeza cirúrgica no seu código**. Removi as duplicações, apliquei o `avoid-all` que faltava e mantive a sua tela de carregamento do PDF (`Gerando...`) que ficou excelente!
-
-👉 **Faça o seguinte:** No seu editor, pressione `Ctrl + A` (para selecionar tudo), apague tudo e cole este código final abaixo:
-
-```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
