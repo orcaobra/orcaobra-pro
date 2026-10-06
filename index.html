@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+  
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,18 +16,17 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- HTML2PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <!-- jsPDF AutoTable -->
+  <!-- jsPDF AutoTable (Para o relatório financeiro) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-  <!-- Chart.js -->
+  <!-- Chart.js para os Gráficos Financeiros -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <style>
    .pdf-page-container { width: 630px; margin: 0 auto; background: white; box-sizing: border-box; }
     .avoid-break { page-break-inside: avoid !important; break-inside: avoid !important; }
   </style>
-
-  <!-- SISTEMA DE PROTEÇÃO ANTICÓPIA -->
+<!-- SISTEMA DE PROTEÇÃO ANTICÓPIA -->
   <script>
     document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
     document.addEventListener('keydown', function(e) {
@@ -53,6 +53,7 @@
           <p id="user-status-badge" class="text-xs text-amber-300 font-semibold"></p>
         </div>
       </div>
+      
       <div class="flex items-center gap-2">
         <button id="btn-install-pwa" onclick="instalarPWA()" class="hidden bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow transition">
           <i class="fa-solid fa-download"></i> Baixar App
@@ -67,11 +68,11 @@
     </div>
   </header>
 
-  <!-- BANNER DE BLOQUEIO -->
+  <!-- BANNER DE BLOQUEIO DA ASSINATURA -->
   <div id="banner-assinatura-bloqueada" class="bg-red-600 text-white text-xs font-bold py-3 px-4 shadow-md hidden text-center space-y-2">
     <p><i class="fa-solid fa-lock"></i> Seus 30 dias de acesso expiraram! Renove sua assinatura para continuar utilizando o aplicativo.</p>
     <a id="link-renovar-banner" href="https://checkout.perfectpay.com.br/pay/PPU38CQG8G8?src=renovacao" target="_blank" class="inline-block bg-amber-400 text-slate-950 px-4 py-2 rounded-lg font-extrabold hover:bg-amber-300 shadow transition uppercase">
-      <i class="fa-solid fa-credit-card"></i> Renovar Assinatura (R$ 17,00/mês)
+      <i class="fa-solid fa-credit-card"></i> Renovar Assinatura (R$ 19,90/mês)
     </a>
   </div>
 
@@ -101,7 +102,8 @@
 
   <!-- CONTEÚDO PRINCIPAL DO APP -->
   <main id="app-main-content" class="max-w-4xl mx-auto p-3 sm:p-5 space-y-6 hidden">
-    <!-- MENU DE ABAS -->
+    
+    <!-- MENU DE ABAS ATUALIZADO (4 BOTÕES) -->
     <div class="flex border-b border-slate-300 bg-white rounded-t-2xl overflow-hidden shadow-sm text-xs sm:text-sm">
       <button id="tab-btn-novo" onclick="mudarAba('novo')" class="flex-1 py-3 flex flex-col sm:flex-row items-center justify-center gap-1 font-bold border-b-2 border-blue-700 text-blue-700 bg-blue-50/60 transition"><i class="fa-solid fa-plus-circle"></i> <span class="hidden sm:inline">Novo</span></button>
       <button id="tab-btn-lista" onclick="mudarAba('lista')" class="flex-1 py-3 flex flex-col sm:flex-row items-center justify-center gap-1 font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition"><i class="fa-solid fa-file-invoice"></i> <span class="hidden sm:inline">Histórico</span></button>
@@ -136,16 +138,18 @@
         </div>
       </div>
       <div class="mt-3">
-        <button type="button" id="btn-toggle-responsavel" onclick="toggleCampoResponsavel()" class="text-xs font-bold text-blue-700 hover:text-blue-900 flex items-center gap-1.5"><i class="fa-solid fa-plus-circle"></i> <span id="lbl-btn-responsavel">Adicionar Responsável pelo Orçamento</span></button>
-      </div>
-      <div id="box-responsavel" class="hidden mt-2 bg-blue-50 p-3 rounded-xl border border-blue-200 space-y-1">
-        <label class="block text-xs font-bold text-blue-800"><i class="fa-solid fa-user-tie mr-1"></i> Responsável pelo Orçamento</label>
-        <input type="text" id="cond-responsavel" class="w-full border border-blue-300 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ex: João da Silva">
-        <p class="text-[10px] text-blue-700 italic">Este nome aparecerá no rodapé do PDF do orçamento.</p>
-      </div>
+  <button type="button" id="btn-toggle-responsavel" onclick="toggleCampoResponsavel()" class="text-xs font-bold text-blue-700 hover:text-blue-900 flex items-center gap-1.5">
+    <i class="fa-solid fa-plus-circle"></i> <span id="lbl-btn-responsavel">Adicionar Responsável pelo Orçamento</span>
+  </button>
+</div>
+<div id="box-responsavel" class="hidden mt-2 bg-blue-50 p-3 rounded-xl border border-blue-200 space-y-1">
+  <label class="block text-xs font-bold text-blue-800"><i class="fa-solid fa-user-tie mr-1"></i> Responsável pelo Orçamento</label>
+  <input type="text" id="cond-responsavel" class="w-full border border-blue-300 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ex: João da Silva">
+  <p class="text-[10px] text-blue-700 italic">Este nome aparecerá no rodapé do PDF do orçamento.</p>
+</div>
       <div class="flex items-center gap-3 bg-blue-50 p-4 rounded-xl border border-blue-200 shadow-sm cursor-pointer" onclick="document.getElementById('ocultar-valores').click()">
         <input type="checkbox" id="ocultar-valores" class="w-5 h-5 text-blue-700 rounded border-blue-300 focus:ring-blue-500 cursor-pointer" onclick="event.stopPropagation()">
-        <label class="text-xs font-bold text-blue-900 cursor-pointer">Ocultar preços detalhados no PDF (Mostra a lista de serviços, mas oculta o valor individual).</label>
+        <label class="text-xs font-bold text-blue-900 cursor-pointer">Ocultar preços detalhados no PDF (Mostra a lista de serviços, mas oculta o valor individual. Apenas o Valor Total será exibido).</label>
       </div>
       <div class="bg-slate-900 text-white p-4 sm:p-5 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 shadow-md">
         <div><span class="text-xs text-slate-400 font-medium block">VALOR TOTAL DO ORÇAMENTO</span><span id="valor-total-geral" class="text-3xl font-extrabold text-amber-400">R$ 0,00</span></div>
@@ -154,26 +158,26 @@
     </section>
 
     <!-- ABA 2: HISTÓRICO -->
-    <section id="aba-lista" class="bg-white p-4 sm:p-6 rounded-b-2xl shadow-sm border border-slate-200 hidden space-y-4">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h2 class="text-base font-bold text-slate-700 flex items-center gap-2"><i class="fa-solid fa-folder-open text-blue-600"></i> Meus Orçamentos</h2>
-        <span id="qtd-orcamentos" class="text-xs font-bold bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full">0</span>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div class="sm:col-span-2 relative">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-slate-400 text-xs"></i>
-          <input type="text" id="busca-orcamento" class="w-full border border-slate-300 rounded-xl p-2.5 pl-8 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Buscar por nome do cliente ou Nº do orçamento...">
-        </div>
-        <select id="filtro-status-orc" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm font-semibold text-slate-700 outline-none">
-          <option value="todos">📋 Todos os Status</option>
-          <option value="Pendente">🟡 Pendente</option>
-          <option value="Aprovado">🟢 Aprovado</option>
-          <option value="Recusado">🔴 Recusado</option>
-          <option value="Concluído">🔵 Concluído</option>
-        </select>
-      </div>
-      <div id="lista-orcamentos-container" class="space-y-3"></div>
-    </section>
+<section id="aba-lista" class="bg-white p-4 sm:p-6 rounded-b-2xl shadow-sm border border-slate-200 hidden space-y-4">
+  <div class="flex justify-between items-center border-b pb-3">
+    <h2 class="text-base font-bold text-slate-700 flex items-center gap-2"><i class="fa-solid fa-folder-open text-blue-600"></i> Meus Orçamentos</h2>
+    <span id="qtd-orcamentos" class="text-xs font-bold bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full">0</span>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div class="sm:col-span-2 relative">
+      <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-slate-400 text-xs"></i>
+      <input type="text" id="busca-orcamento" class="w-full border border-slate-300 rounded-xl p-2.5 pl-8 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Buscar por nome do cliente ou Nº do orçamento (ex: 0001)...">
+    </div>
+    <select id="filtro-status-orc" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm font-semibold text-slate-700 outline-none">
+      <option value="todos">📋 Todos os Status</option>
+      <option value="Pendente">🟡 Pendente</option>
+      <option value="Aprovado">🟢 Aprovado</option>
+      <option value="Recusado">🔴 Recusado</option>
+      <option value="Concluído">🔵 Concluído</option>
+    </select>
+  </div>
+  <div id="lista-orcamentos-container" class="space-y-3"></div>
+</section>
 
     <!-- ABA 3: CLIENTES -->
     <section id="aba-clientes" class="bg-white p-4 sm:p-6 rounded-b-2xl shadow-sm border border-slate-200 hidden space-y-4">
@@ -197,11 +201,13 @@
         <button onclick="abrirModalTransacao('saida')" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl shadow-sm text-sm flex items-center justify-center gap-2 transition"><i class="fa-solid fa-arrow-up"></i> Nova Saída</button>
         <button onclick="gerarPDFFinanceiro()" class="col-span-2 md:col-span-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-xl shadow-sm text-sm flex items-center justify-center gap-2 transition"><i class="fa-solid fa-file-pdf text-red-400"></i> Relatório PDF</button>
       </div>
+
       <div class="flex gap-2 mb-4 bg-white p-2 rounded-xl shadow-sm border border-slate-200">
         <button class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:bg-slate-100" id="btn-fin-total" onclick="mudarTempoFin('total')">Total</button>
         <button class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-blue-800 text-white shadow" id="btn-fin-mes" onclick="mudarTempoFin('mes')">Mês</button>
         <button class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:bg-slate-100" id="btn-fin-ano" onclick="mudarTempoFin('ano')">Ano</button>
       </div>
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-blue-600">
           <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Saldo Líquido</h3>
@@ -216,6 +222,7 @@
           <div class="text-xl font-bold text-red-600" id="fin-saidas">R$ 0,00</div>
         </div>
       </div>
+
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
         <h3 class="text-xs font-bold text-slate-700 flex items-center gap-2"><i class="fa-solid fa-filter"></i> Filtros do Relatório</h3>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
@@ -233,10 +240,12 @@
           </div>
         </div>
       </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"><h3 class="text-xs font-bold text-slate-700 mb-4 text-center">Distribuição (Entradas vs Saídas)</h3><div class="relative h-48 w-full"><canvas id="pieChartFinanceiro"></canvas></div></div>
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"><h3 class="text-xs font-bold text-slate-700 mb-4 text-center">Evolução do Saldo</h3><div class="relative h-48 w-full"><canvas id="barChartFinanceiro"></canvas></div></div>
       </div>
+
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <h3 class="text-sm font-bold text-slate-700 mb-3 border-b pb-2">Histórico de Lançamentos</h3>
         <div id="lista-transacoes-container" class="space-y-2"></div>
@@ -249,7 +258,7 @@
     <div class="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2"><i class="fa-solid fa-user-gear text-blue-700"></i> Perfil da Empresa</h3>
-        <button onclick="toggleModalPerfil(true)" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+        <button onclick="toggleModalPerfil()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
       </div>
       <div class="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
         <label class="block text-xs font-bold text-slate-700 uppercase">Logo da Empresa</label>
@@ -282,11 +291,13 @@
       <button onclick="salvarPerfil()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl shadow transition text-sm">Salvar Alterações</button>
       <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 flex justify-between items-center mt-3">
         <div><span class="block text-xs font-bold text-amber-900">Plano OrçaObra Pro</span><span id="perfil-dias-restantes" class="text-[11px] text-amber-700">Carregando...</span></div>
-        <a id="link-renovar-perfil" href="https://checkout.perfectpay.com.br/pay/PPU38CQG8G8?src=renovacao" target="_blank" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs px-3 py-2 rounded-lg shadow transition flex items-center gap-1"><i class="fa-solid fa-arrows-rotate"></i> Renovar (R$ 17,00)</a>
+        <a id="link-renovar-perfil" href="https://checkout.perfectpay.com.br/pay/PPU38CQG8G8?src=renovacao" target="_blank" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs px-3 py-2 rounded-lg shadow transition flex items-center gap-1"><i class="fa-solid fa-arrows-rotate"></i> Renovar (R$ 19,90)</a>
       </div>
+      <a href="https://wa.me/233505417501?text=Ol%C3%A1%2C%20Preciso%20de%20ajuda%20com%20o%20Or%C3%A7aObra%20Pro" target="_blank" class="mt-3 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow transition text-sm flex items-center justify-center gap-2">
+  <i class="fa-brands fa-whatsapp text-lg"></i> Suporte pelo WhatsApp
+</a>
     </div>
   </div>
-
   <div id="modal-editar-contrato" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
     <div class="bg-white rounded-2xl max-w-2xl w-full p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-2">
@@ -310,6 +321,8 @@
       </div>
     </div>
   </div>
+
+  
   
   <div id="modal-novo-cliente" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-2xl">
@@ -326,6 +339,7 @@
     </div>
   </div>
 
+  <!-- MODAL: EDITAR CLIENTE (NOVO) -->
   <div id="modal-editar-cliente" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-2">
@@ -340,37 +354,39 @@
         <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nome Completo *</label><input type="text" id="edit-cli-nome" required class="w-full border border-slate-300 rounded-xl p-2.5 text-sm outline-none"></div>
         <div><label class="block text-xs font-semibold text-slate-600 mb-1">WhatsApp *</label><input type="tel" id="edit-cli-whats" required class="w-full border border-slate-300 rounded-xl p-2.5 text-sm outline-none"></div>
         <div><label class="block text-xs font-semibold text-slate-600 mb-1">Endereço (Opcional)</label><input type="text" id="edit-cli-endereco" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm outline-none"></div>
+        
         <div class="bg-blue-50 p-2 rounded-lg border border-blue-200 mt-2">
           <p class="text-[10px] text-blue-800 font-semibold"><i class="fa-solid fa-circle-info"></i> Atualizar os dados aqui também altera o nome deste cliente em todos os orçamentos e lançamentos vinculados.</p>
         </div>
+
         <button type="submit" id="btn-salvar-edit-cli" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl shadow transition text-sm mt-2">Salvar Alterações</button>
       </form>
     </div>
   </div>
 
-  <div id="modal-historico-cliente" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2"><i class="fa-solid fa-address-book text-blue-700"></i> Ficha do Cliente</h3>
-        <button onclick="fecharModaisFinanceiro()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
-      </div>
-      <div>
-        <h4 id="view-cli-nome" class="font-bold text-xl text-blue-900">Nome</h4>
-        <p class="text-sm text-slate-500" id="view-cli-whats"></p>
-        <p class="text-xs text-slate-500 mt-1" id="view-cli-endereco"></p>
-      </div>
-      <button id="btn-novo-orc-do-cliente" onclick="criarOrcamentoParaClienteAtual()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow transition text-sm flex items-center justify-center gap-2">
-        <i class="fa-solid fa-plus-circle"></i> Criar Novo Orçamento
-      </button>
-      <div class="border-t pt-3">
-        <h4 class="font-bold text-sm text-slate-700 mb-2">Orçamentos Vinculados</h4>
-        <div id="view-cli-orcamentos" class="space-y-2 mb-4"></div>
-        <h4 class="font-bold text-sm text-slate-700 mb-2 border-t pt-3">Lançamentos Financeiros (Pagamentos/Saídas)</h4>
-        <div id="view-cli-resumo"></div>
-        <div id="view-cli-transacoes" class="space-y-2"></div>
-      </div>
+ <div id="modal-historico-cliente" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center border-b pb-2">
+      <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2"><i class="fa-solid fa-address-book text-blue-700"></i> Ficha do Cliente</h3>
+      <button onclick="fecharModaisFinanceiro()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+    </div>
+    <div>
+      <h4 id="view-cli-nome" class="font-bold text-xl text-blue-900">Nome</h4>
+      <p class="text-sm text-slate-500" id="view-cli-whats"></p>
+      <p class="text-xs text-slate-500 mt-1" id="view-cli-endereco"></p>
+    </div>
+    <button id="btn-novo-orc-do-cliente" onclick="criarOrcamentoParaClienteAtual()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow transition text-sm flex items-center justify-center gap-2">
+      <i class="fa-solid fa-plus-circle"></i> Criar Novo Orçamento para Este Cliente
+    </button>
+    <div class="border-t pt-3">
+      <h4 class="font-bold text-sm text-slate-700 mb-2">Orçamentos Vinculados</h4>
+      <div id="view-cli-orcamentos" class="space-y-2 mb-4"></div>
+      <h4 class="font-bold text-sm text-slate-700 mb-2 border-t pt-3">Lançamentos Financeiros (Pagamentos/Saídas)</h4>
+      <div id="view-cli-resumo"></div>
+      <div id="view-cli-transacoes" class="space-y-2"></div>
     </div>
   </div>
+</div>
 
   <div id="modal-nova-transacao" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-2xl">
@@ -395,8 +411,7 @@
     </div>
   </div>
 
-  <!-- DIVS OCULTAS PARA RENDERIZAR OS PDFs -->
-  <div style="position: absolute; left: -99999px; top: 0; width: 800px; z-index: -1; pointer-events: none; opacity: 0.01; overflow: visible;">
+<div style="position: fixed; top: 0; left: 0; opacity: 0; pointer-events: none; z-index: -9999;">
     <div id="pdf-template" class="pdf-page-container p-5 text-slate-800 space-y-3 text-[11px]">
       <div class="border-b-2 border-blue-800 pb-2 flex justify-between items-start avoid-break">
         <div class="space-y-1 max-w-[420px]"><div id="pdf-logo-container" class="hidden"><img id="pdf-logo-img" src="" alt="Logo" class="max-h-12 max-w-[150px] object-contain mb-1"></div><div><h1 id="pdf-prof-nome" class="text-lg font-bold text-blue-900 leading-tight">Empresa</h1><p id="pdf-prof-doc" class="text-[10px] text-slate-500"></p><p id="pdf-prof-whats" class="text-[10px] text-slate-500"></p></div></div>
@@ -409,7 +424,7 @@
     </div>
   </div>
 
-  <div style="position: absolute; left: -99999px; top: 0; width: 800px; z-index: -1; pointer-events: none; opacity: 0.01; overflow: visible;">
+ <div style="position: fixed; top: 0; left: 0; opacity: 0; pointer-events: none; z-index: -9999;">
     <div id="contrato-template" class="pdf-page-container p-8 text-slate-900 space-y-5 text-[12px] leading-relaxed">
       <div class="text-center border-b-2 border-slate-800 pb-3"><div id="contrato-logo-container" class="hidden mb-2"><img id="contrato-logo-img" src="" alt="Logo" class="max-h-16 mx-auto object-contain"></div><h1 class="text-sm font-black uppercase text-slate-900 tracking-wide">CONTRATO DE EXECUÇÃO DE PRESTAÇÃO DE SERVIÇOS DE OBRA</h1></div>
       <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-300"><div><h2 class="font-bold text-slate-800 uppercase border-b pb-1 text-[11px] mb-2">CONTRATADA (Prestador)</h2><p><strong>Empresa/Nome:</strong> <span id="ctr-prof-nome"></span></p><p><strong>CPF/CNPJ:</strong> <span id="ctr-prof-doc"></span> | <strong>Whats:</strong> <span id="ctr-prof-whats"></span></p></div><div><h2 class="font-bold text-slate-800 uppercase border-b pb-1 text-[11px] mb-2">CONTRATANTE (Cliente)</h2><p><strong>Cliente:</strong> <span id="ctr-cli-nome"></span> | <strong>Whats:</strong> <span id="ctr-cli-whats"></span></p><p><strong>Endereço:</strong> <span id="ctr-cli-endereco"></span></p></div></div>
@@ -494,7 +509,7 @@
     function inicializarAppGeral() {
       atualizarCabecalhoEmpresa(); carregarPerfilForm();
       if(document.querySelectorAll('[id^="card-servico-"]').length === 0) adicionarServico();
-      mudarTempoFin('total'); 
+     mudarTempoFin('total'); 
     }
 
     function toggleModalPerfil(forceClose = false) { 
@@ -597,25 +612,25 @@
       document.getElementById('cli-nome').value = ''; document.getElementById('cli-whats').value = ''; document.getElementById('cli-endereco').value = '';
       document.getElementById('cond-garantia').value = '90 dias'; document.getElementById('ocultar-valores').checked = false; document.getElementById('container-servicos').innerHTML = '';
       document.getElementById('box-responsavel').classList.add('hidden');
-      document.getElementById('lbl-btn-responsavel').innerText = 'Adicionar Responsável pelo Orçamento';
-      document.getElementById('cond-responsavel').value = '';
+document.getElementById('lbl-btn-responsavel').innerText = 'Adicionar Responsável pelo Orçamento';
+document.getElementById('cond-responsavel').value = '';
       orcamentoEditandoId = null; document.getElementById('btn-salvar-orc').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Salvar e Gerar Orçamento';
       servicosContador = 0; adicionarServico(); calcularTotalGeral();
     }
     function toggleCampoResponsavel() {
-      const box = document.getElementById('box-responsavel');
-      const lbl = document.getElementById('lbl-btn-responsavel');
-      const input = document.getElementById('cond-responsavel');
-      if (box.classList.contains('hidden')) {
-        box.classList.remove('hidden');
-        lbl.innerText = 'Remover Responsável';
-        setTimeout(() => input.focus(), 100);
-      } else {
-        box.classList.add('hidden');
-        lbl.innerText = 'Adicionar Responsável pelo Orçamento';
-        input.value = '';
-      }
-    }
+  const box = document.getElementById('box-responsavel');
+  const lbl = document.getElementById('lbl-btn-responsavel');
+  const input = document.getElementById('cond-responsavel');
+  if (box.classList.contains('hidden')) {
+    box.classList.remove('hidden');
+    lbl.innerText = 'Remover Responsável';
+    setTimeout(() => input.focus(), 100);
+  } else {
+    box.classList.add('hidden');
+    lbl.innerText = 'Adicionar Responsável pelo Orçamento';
+    input.value = '';
+  }
+}
     function editarOrcamento(id) {
       const orc = orcamentos.find(item => item.id === id);
       if(!orc) return;
@@ -626,14 +641,14 @@
       document.getElementById('ocultar-valores').checked = !!orc.ocultarValores;
       document.getElementById('container-servicos').innerHTML = ''; servicosContador = 0;
       if (orc.responsavel && orc.responsavel.trim() !== '') {
-        document.getElementById('box-responsavel').classList.remove('hidden');
-        document.getElementById('lbl-btn-responsavel').innerText = 'Remover Responsável';
-        document.getElementById('cond-responsavel').value = orc.responsavel;
-      } else {
-        document.getElementById('box-responsavel').classList.add('hidden');
-        document.getElementById('lbl-btn-responsavel').innerText = 'Adicionar Responsável pelo Orçamento';
-        document.getElementById('cond-responsavel').value = '';
-      }
+  document.getElementById('box-responsavel').classList.remove('hidden');
+  document.getElementById('lbl-btn-responsavel').innerText = 'Remover Responsável';
+  document.getElementById('cond-responsavel').value = orc.responsavel;
+} else {
+  document.getElementById('box-responsavel').classList.add('hidden');
+  document.getElementById('lbl-btn-responsavel').innerText = 'Adicionar Responsável pelo Orçamento';
+  document.getElementById('cond-responsavel').value = '';
+}
       orc.servicos.forEach(s => {
         adicionarServico(); const sid = servicosContador;
         document.getElementById(`serv-tipo-${sid}`).value = s.tipo;
@@ -673,19 +688,22 @@
         });
       });
 
-      let numeroAtribuido;
-      if (orcamentoEditandoId) {
-        numeroAtribuido = orcamentos.find(o => o.id === orcamentoEditandoId)?.numero || 0;
-      } else {
-        numeroAtribuido = orcamentos.length > 0 ? Math.max(...orcamentos.map(o => parseInt(o.numero) || 0)) + 1 : 1;
-      }
+  // Calcula o próximo número sequencial (só para orçamentos novos)
+let numeroAtribuido;
+if (orcamentoEditandoId) {
+  numeroAtribuido = orcamentos.find(o => o.id === orcamentoEditandoId)?.numero || 0;
+} else {
+  numeroAtribuido = orcamentos.length > 0
+    ? Math.max(...orcamentos.map(o => parseInt(o.numero) || 0)) + 1
+    : 1;
+}
 
-      const novoOrcamento = {
-        id: orcamentoEditandoId ? orcamentoEditandoId : Date.now(),
-        numero: numeroAtribuido,
-        data: orcamentoEditandoId ? orcamentos.find(o => o.id === orcamentoEditandoId).data : new Date().toLocaleDateString('pt-BR'),
-        cliente: { nome: cliNome, whats: document.getElementById('cli-whats').value, endereco: document.getElementById('cli-endereco').value },
-        responsavel: document.getElementById('cond-responsavel').value.trim(),
+const novoOrcamento = {
+  id: orcamentoEditandoId ? orcamentoEditandoId : Date.now(),
+  numero: numeroAtribuido,
+  data: orcamentoEditandoId ? orcamentos.find(o => o.id === orcamentoEditandoId).data : new Date().toLocaleDateString('pt-BR'),
+  cliente: { nome: cliNome, whats: document.getElementById('cli-whats').value, endereco: document.getElementById('cli-endereco').value },
+    responsavel: document.getElementById('cond-responsavel').value.trim(),
         servicos: listaServicos,
         condicoes: { prazo: document.getElementById('cond-prazo').value, pagto: document.getElementById('cond-pagto').value, validade: document.getElementById('cond-validade').value, garantia: document.getElementById('cond-garantia').value },
         totalGeral: calcularTotalGeral(),
@@ -726,78 +744,107 @@
     }
 
     function renderizarListaOrcamentos() {
-      const container = document.getElementById('lista-orcamentos-container');
-      const termoBusca = (document.getElementById('busca-orcamento')?.value || '').toLowerCase().trim();
-      const filtroStatus = document.getElementById('filtro-status-orc')?.value || 'todos';
+  const container = document.getElementById('lista-orcamentos-container');
+  const termoBusca = (document.getElementById('busca-orcamento')?.value || '').toLowerCase().trim();
+  const filtroStatus = document.getElementById('filtro-status-orc')?.value || 'todos';
 
-      const filtrados = orcamentos.filter(item => {
-        if (filtroStatus !== 'todos' && item.status !== filtroStatus) return false;
-        if (termoBusca) {
-          const nomeOK = item.cliente.nome.toLowerCase().includes(termoBusca);
-          const numeroFormatado = String(item.numero || 0).padStart(4, '0');
-          const numeroOK = numeroFormatado.includes(termoBusca) || String(item.numero || '').includes(termoBusca);
-          if (!nomeOK && !numeroOK) return false;
-        }
-        return true;
-      });
-
-      document.getElementById('qtd-orcamentos').innerText = filtrados.length;
-
-      if (filtrados.length === 0) {
-        container.innerHTML = `<p class="text-center text-slate-400 py-8 text-sm">${orcamentos.length === 0 ? 'Nenhum orçamento cadastrado ainda.' : 'Nenhum orçamento corresponde aos filtros.'}</p>`;
-        return;
-      }
-
-      container.innerHTML = filtrados.map(item => {
-        const statusColors = { 'Pendente': 'bg-amber-100 text-amber-900 border-amber-300', 'Aprovado': 'bg-green-100 text-green-900 border-green-300', 'Recusado': 'bg-red-100 text-red-900 border-red-300', 'Concluído': 'bg-blue-100 text-blue-900 border-blue-300' };
-        const resumoServicos = item.servicos.map(s => (s.tipo === 'Outros Serviços' && s.tipoCustom) ? s.tipoCustom : s.tipo).join(', ');
-        return `
-          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-            <div class="space-y-1">
-              <div class="flex items-center gap-2 flex-wrap"><span class="font-bold text-slate-800 text-sm">${item.cliente.nome}</span><span class="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Nº ${String(item.numero || 0).padStart(4, '0')}</span><span class="text-xs text-slate-400">${item.data}</span></div>
-              <p class="text-xs text-slate-600"><strong>Serviços:</strong> ${resumoServicos}</p>
-              <p class="text-xs font-bold text-blue-900">Total: ${item.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-              <div class="flex items-center gap-2 mt-2">
-                <label class="text-xs font-semibold text-slate-500">Status:</label>
-                <select onchange="atualizarStatus(${item.id}, this.value)" class="text-xs font-bold border rounded-lg px-2 py-1 ${statusColors[item.status]}">
-                  <option value="Pendente" ${item.status === 'Pendente' ? 'selected' : ''}>🟡 Pendente</option>
-                  <option value="Aprovado" ${item.status === 'Aprovado' ? 'selected' : ''}>🟢 Aprovado</option>
-                  <option value="Recusado" ${item.status === 'Recusado' ? 'selected' : ''}>🔴 Recusado</option>
-                  <option value="Concluído" ${item.status === 'Concluído' ? 'selected' : ''}>🔵 Concluído</option>
-                </select>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-2 md:pt-0 flex-wrap">
-              ${item.status === 'Pendente' ? `<button onclick="editarOrcamento(${item.id})" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 shadow"><i class="fa-solid fa-pen"></i> Editar</button>` : ''}
-              <button onclick="gerarPDF(${item.id}, event)" class="bg-slate-800 hover:bg-black text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 shadow"><i class="fa-solid fa-file-pdf text-red-400"></i> Orçamento</button>
-              ${item.status === 'Aprovado' ? `<button onclick="abrirModalEditarContrato(${item.id})" class="bg-blue-800 hover:bg-blue-900 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 shadow"><i class="fa-solid fa-file-contract text-amber-300"></i> Contrato</button>` : ''}
-              <button onclick="enviarWhatsApp(${item.id})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 shadow"><i class="fa-brands fa-whatsapp"></i> Whats</button>
-              <button onclick="excluirOrcamento(${item.id})" class="text-slate-400 hover:text-red-600 p-2 text-xs"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </div>
-        `;
-      }).join('');
+  const filtrados = orcamentos.filter(item => {
+    if (filtroStatus !== 'todos' && item.status !== filtroStatus) return false;
+    if (termoBusca) {
+      const nomeOK = item.cliente.nome.toLowerCase().includes(termoBusca);
+      const numeroFormatado = String(item.numero || 0).padStart(4, '0');
+      const numeroOK = numeroFormatado.includes(termoBusca) || String(item.numero || '').includes(termoBusca);
+      if (!nomeOK && !numeroOK) return false;
     }
+    return true;
+  });
 
-    function popularTemplatePDF(orcamento) { 
+  document.getElementById('qtd-orcamentos').innerText = filtrados.length;
+
+  if (filtrados.length === 0) {
+    container.innerHTML = `<p class="text-center text-slate-400 py-8 text-sm">${orcamentos.length === 0 ? 'Nenhum orçamento cadastrado ainda.' : 'Nenhum orçamento corresponde aos filtros.'}</p>`;
+    return;
+  }
+
+  container.innerHTML = filtrados.map(item => {
+    const statusColors = { 'Pendente': 'bg-amber-100 text-amber-900 border-amber-300', 'Aprovado': 'bg-green-100 text-green-900 border-green-300', 'Recusado': 'bg-red-100 text-red-900 border-red-300', 'Concluído': 'bg-blue-100 text-blue-900 border-blue-300' };
+    const resumoServicos = item.servicos.map(s => (s.tipo === 'Outros Serviços' && s.tipoCustom) ? s.tipoCustom : s.tipo).join(', ');
+    return `
+      <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2 flex-wrap"><span class="font-bold text-slate-800 text-sm">${item.cliente.nome}</span><span class="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Nº ${String(item.numero || 0).padStart(4, '0')}</span><span class="text-xs text-slate-400">${item.data}</span></div>
+          <p class="text-xs text-slate-600"><strong>Serviços:</strong> ${resumoServicos}</p>
+          <p class="text-xs font-bold text-blue-900">Total: ${item.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+          <div class="flex items-center gap-2 mt-2">
+            <label class="text-xs font-semibold text-slate-500">Status:</label>
+            <select onchange="atualizarStatus(${item.id}, this.value)" class="text-xs font-bold border rounded-lg px-2 py-1 ${statusColors[item.status]}">
+              <option value="Pendente" ${item.status === 'Pendente' ? 'selected' : ''}>🟡 Pendente</option>
+              <option value="Aprovado" ${item.status === 'Aprovado' ? 'selected' : ''}>🟢 Aprovado</option>
+              <option value="Recusado" ${item.status === 'Recusado' ? 'selected' : ''}>🔴 Recusado</option>
+              <option value="Concluído" ${item.status === 'Concluído' ? 'selected' : ''}>🔵 Concluído</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-2 md:pt-0 flex-wrap">
+          ${item.status === 'Pendente' ? `<button onclick="editarOrcamento(${item.id})" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 shadow"><i class="fa-solid fa-pen"></i> Editar</button>` : ''}
+          <button onclick="gerarPDF(${item.id}, event)" class="bg-slate-800 hover:bg-black text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 shadow"><i class="fa-solid fa-file-pdf text-red-400"></i> Orçamento</button>
+          ${item.status === 'Aprovado' ? `<button onclick="abrirModalEditarContrato(${item.id})" class="bg-blue-800 hover:bg-blue-900 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 shadow"><i class="fa-solid fa-file-contract text-amber-300"></i> Contrato</button>` : ''}
+          <button onclick="enviarWhatsApp(${item.id})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 shadow"><i class="fa-brands fa-whatsapp"></i> Whats</button>
+          <button onclick="excluirOrcamento(${item.id})" class="text-slate-400 hover:text-red-600 p-2 text-xs"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+    
+   function popularTemplatePDF(orcamento) { 
       const pdfLogoBox = document.getElementById('pdf-logo-container'); const pdfLogoImg = document.getElementById('pdf-logo-img'); if(perfil.logo) { pdfLogoImg.src = perfil.logo; pdfLogoBox.classList.remove('hidden'); } else { pdfLogoBox.classList.add('hidden'); }
       document.getElementById('pdf-prof-nome').innerText = perfil.nome || 'Prestador de Serviço'; document.getElementById('pdf-prof-doc').innerText = perfil.doc ? `CPF/CNPJ: ${perfil.doc}` : ''; document.getElementById('pdf-prof-whats').innerText = perfil.whats ? `WhatsApp: ${perfil.whats}` : ''; document.getElementById('pdf-prof-pix').innerText = perfil.pix || 'A combinar'; document.getElementById('pdf-prof-pix-titular').innerText = perfil.pixTitular || 'Não informado'; document.getElementById('pdf-data').innerText = `Nº ${String(orcamento.numero || 0).padStart(4, '0')} • Data: ${orcamento.data}`; document.getElementById('pdf-cli-nome').innerText = orcamento.cliente.nome; document.getElementById('pdf-cli-whats').innerText = orcamento.cliente.whats; document.getElementById('pdf-cli-endereco').innerText = orcamento.cliente.endereco || 'Não informado'; document.getElementById('pdf-th-subtotal').innerText = orcamento.ocultarValores ? '' : 'Subtotal';
+      
       const tbody = document.getElementById('pdf-tbody-servicos');
+      
+      // NOVA ESTRUTURA ANTI-QUEBRA DE PÁGINA (Usa DIVs em vez de Tabela TR/TD)
       tbody.innerHTML = orcamento.servicos.map(s => {
        let textoMetrica = ''; if(s.cobranca === 'm2') textoMetrica = `${s.qtd} m² x R$ ${s.valUnit}`; else if(s.cobranca === 'm3') textoMetrica = `${s.qtd} m³ x R$ ${s.valUnit}`; else if(s.cobranca === 'ml') textoMetrica = `${s.qtd} ml x R$ ${s.valUnit}`; else if(s.cobranca === 'ponto') textoMetrica = `${s.qtd} Pontos x R$ ${s.valUnit}`; else if(s.cobranca === 'diaria') textoMetrica = `${s.qtd} Diárias x R$ ${s.valUnit}`; else if(s.cobranca === 'empreita') textoMetrica = `Serviço por Empreita`;
         let matTipoAtualizado = s.materialTipo; if (matTipoAtualizado === 'Mão de Obra + Material' || matTipoAtualizado === 'Material Incluso' || matTipoAtualizado === 'Material Fornecido pela parte Contratada') { matTipoAtualizado = 'Material Fornecido pela parte Contratada'; } if (matTipoAtualizado === 'Mão de Obra + Lista para o cliente' || matTipoAtualizado === 'Com Lista de Materiais' || matTipoAtualizado === 'Materiais Fornecidos pela parte Contratante') { matTipoAtualizado = 'Materiais Fornecidos pela parte Contratante'; }
         let tituloMateriais = ''; if (matTipoAtualizado === 'Somente Mão de Obra' || matTipoAtualizado === 'Materiais Fornecidos pela parte Contratante') { tituloMateriais = 'Lista de materiais fornecidos pelo cliente:'; } else if (matTipoAtualizado === 'Material Fornecido pela parte Contratada') { tituloMateriais = 'Lista de materiais fornecidos pelo prestador:'; } else { tituloMateriais = 'Lista de materiais:'; }
-        let htmlMateriais = ''; if (s.materialLista && s.materialLista.trim() !== '') { const itens = s.materialLista.split(/,|\n/).map(item => item.trim()).filter(item => item.length > 0); const listaItens = itens.map(item => `<li class="ml-2">• ${item}</li>`).join(''); htmlMateriais = `<div class="text-[9px] text-slate-700 bg-slate-100 p-1 rounded mt-0.5 border border-slate-200"><strong>${tituloMateriais}</strong><ul class="mt-0.5 space-y-0.5 text-slate-800">${listaItens}</ul></div>`; }
+        
+        let htmlMateriais = ''; 
+        if (s.materialLista && s.materialLista.trim() !== '') { 
+          const itens = s.materialLista.split(/,|\n/).map(item => item.trim()).filter(item => item.length > 0); 
+          const listaItens = itens.map(item => `<li class="ml-2">• ${item}</li>`).join(''); 
+          htmlMateriais = `<div class="text-[9px] text-slate-700 bg-slate-100 p-1 rounded mt-0.5 border border-slate-200"><strong>${tituloMateriais}</strong><ul class="mt-0.5 space-y-0.5 text-slate-800">${listaItens}</ul></div>`; 
+        }
+        
         const nomeServico = (s.tipo === 'Outros Serviços' && s.tipoCustom) ? s.tipoCustom : s.tipo;
-        return `<tr class="border-b" style="page-break-inside: avoid;"><td class="p-1 pb-2"><strong class="text-blue-900">${nomeServico}</strong><div class="text-[9px] text-slate-500 font-medium">${matTipoAtualizado}</div>${htmlMateriais}${s.obs ? `<div class="text-[10px] text-slate-700 mt-1">Obs: ${s.obs}</div>` : ''}</td><td class="p-1 pb-2 align-top pt-2 text-[10px]">${textoMetrica}</td><td class="p-1 pb-2 align-top pt-2 text-right font-bold text-[10px]">${orcamento.ocultarValores ? '-' : s.subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td></tr>`;
+        const precoHTML = orcamento.ocultarValores ? '-' : s.subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        // Retorna uma linha de tabela, mas com a classe "avoid-break" para evitar que seja cortada a meio
+   return `
+  <tr class="border-b">
+            <td class="p-1 pb-2">
+              <strong class="text-blue-900">${nomeServico}</strong>
+              <div class="text-[9px] text-slate-500 font-medium">${matTipoAtualizado}</div>
+              ${htmlMateriais}
+              ${s.obs ? `<div class="text-[10px] text-slate-700 mt-1">Obs: ${s.obs}</div>` : ''}
+            </td>
+            <td class="p-1 pb-2 align-top pt-2 text-[10px]">${textoMetrica}</td>
+            <td class="p-1 pb-2 align-top pt-2 text-right font-bold text-[10px]">${precoHTML}</td>
+          </tr>
+        `;
       }).join('');
-      document.getElementById('pdf-cond-prazo').innerText = orcamento.condicoes.prazo || 'A combinar'; document.getElementById('pdf-cond-pagto').innerText = orcamento.condicoes.pagto || 'A combinar'; document.getElementById('pdf-cond-validade').innerText = orcamento.condicoes.validade || '15 dias'; document.getElementById('pdf-valor-final').innerText = orcamento.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+      document.getElementById('pdf-cond-prazo').innerText = orcamento.condicoes.prazo || 'A combinar'; 
+      document.getElementById('pdf-cond-pagto').innerText = orcamento.condicoes.pagto || 'A combinar'; 
+      document.getElementById('pdf-cond-validade').innerText = orcamento.condicoes.validade || '15 dias'; 
+      document.getElementById('pdf-valor-final').innerText = orcamento.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      
       const tempoGarantia = orcamento.condicoes.garantia || '90 dias';
       const responsavel = (orcamento.responsavel || '').trim();
       const textoRodape = `Garantia de ${tempoGarantia} para os serviços executados. Este documento é uma estimativa formal de custos.`;
       document.getElementById('pdf-footer-garantia').innerHTML = textoRodape + (responsavel ? `<br><strong>Responsável pelo Orçamento:</strong> ${responsavel}` : '');
     }
-
+    
     function abrirModalEditarContrato(id) {
       const orcamento = orcamentos.find(item => item.id === id); if(!orcamento) return; document.getElementById('edit-ctr-id').value = id;
       const servicosTexto = orcamento.servicos.map(s => {
@@ -820,20 +867,33 @@
       document.getElementById('modal-editar-contrato').classList.remove('hidden');
     }
 
-  async function confirmarEGerarPDFContrato(evt) {
+ 
+
+
+
+async function confirmarEGerarPDFContrato(event) {
   const id = parseInt(document.getElementById('edit-ctr-id').value);
   const orcamento = orcamentos.find(item => item.id === id);
-  if(!orcamento) return;
+  if (!orcamento) return;
 
-  const btn = evt?.currentTarget;
-  const htmlOriginal = btn?.innerHTML;
+  if (window._pdfGerando) return;
+  window._pdfGerando = true;
+
+  const btn = event ? (event.currentTarget || event.target) : null;
+  const htmlOriginal = btn ? btn.innerHTML : '';
   if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(255,255,255,0.92);z-index:999999;display:flex;align-items:center;justify-content:center;font-family:sans-serif;color:#1e3a8a;font-weight:bold;font-size:14px;';
+  overlay.textContent = 'Gerando contrato...';
+  document.body.appendChild(overlay);
 
   try {
     const logoBox = document.getElementById('contrato-logo-container');
     const logoImg = document.getElementById('contrato-logo-img');
-    if(perfil.logo) { logoImg.src = perfil.logo; logoBox.classList.remove('hidden'); } else { logoBox.classList.add('hidden'); }
-    
+    if (perfil.logo) { logoImg.src = perfil.logo; logoBox.classList.remove('hidden'); }
+    else { logoBox.classList.add('hidden'); }
+
     document.getElementById('ctr-prof-nome').innerText = perfil.nome || 'Prestador de Serviço';
     document.getElementById('ctr-prof-doc').innerText = perfil.doc || 'Não informado';
     document.getElementById('ctr-prof-whats').innerText = perfil.whats || 'Não informado';
@@ -844,27 +904,27 @@
     document.getElementById('out-ctr-c2').innerText = document.getElementById('edit-ctr-c2').value;
     document.getElementById('out-ctr-c3').innerText = document.getElementById('edit-ctr-c3').value;
     document.getElementById('out-ctr-c4').innerText = document.getElementById('edit-ctr-c4').value;
-    
+
     const extras = document.getElementById('edit-ctr-extras').value;
     const boxExtras = document.getElementById('ctr-box-extras');
-    if(extras && extras.trim() !== '') {
+    if (extras && extras.trim() !== '') {
       document.getElementById('out-ctr-extras').innerText = extras;
       boxExtras.classList.remove('hidden');
     } else {
       boxExtras.classList.add('hidden');
     }
-    
+
     const dynContainer = document.getElementById('ctr-dynamic-clauses');
     dynContainer.innerHTML = '';
     let numClausulaAtual = 6;
     document.querySelectorAll('[id^="edit-ctr-dinamica-"]').forEach(ta => {
       const text = ta.value.trim();
-      if(text) {
+      if (text) {
         dynContainer.innerHTML += `<div class="mt-2"><h3 class="font-bold text-slate-900 uppercase text-[11px] border-b pb-1 mb-1.5">CLÁUSULA ${numClausulaAtual} – DISPOSIÇÃO ADICIONAL</h3><p class="whitespace-pre-line text-justify">${text}</p></div>`;
         numClausulaAtual++;
       }
     });
-    
+
     const tempoGarantia = orcamento.condicoes.garantia || '90 dias';
     document.getElementById('out-ctr-garantia').innerText = `Integram este contrato as especificações acordadas por WhatsApp. A CONTRATADA concede a garantia legal de ${tempoGarantia} a contar da data de finalização e entrega da obra. Esta garantia cobre exclusivamente defeitos ou falhas decorrentes da execução do serviço prestado.`;
     document.getElementById('ctr-pix').innerText = perfil.pix || 'A combinar';
@@ -875,64 +935,166 @@
     fecharModalContrato();
 
     const element = document.getElementById('contrato-template');
-    const filename = `Contrato_${orcamento.cliente.nome.replace(/\s+/g, '_')}#${String(orcamento.numero || 0).padStart(4, '0')}.pdf`;
-    
+
+    // 1. Espera o navegador pintar
+
+await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+// 2. Espera todas as imagens dentro do template carregarem
+const imagens = Array.from(element.querySelectorAll('img'));
+await Promise.all(imagens.map(img => {
+  if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
+  return new Promise(resolve => {
+    img.onload = resolve;
+    img.onerror = resolve; // não travar se falhar
+    // Timeout de segurança: 2s
+    setTimeout(resolve, 2000);
+  });
+}));
+
+// 3. Dá um tempo extra pro Tailwind CDN processar as classes novas
+await new Promise(r => setTimeout(r, 400));
+
+    const altura = element.scrollHeight;
+    let escala = 2;
+    if (altura > 8000) escala = 1.5;
+    if (altura > 12000) escala = 1;
+    if (altura > 20000) escala = 0.8;
+
+    const filename = `Contrato_${orcamento.cliente.nome.replace(/\s+/g, '_')}.pdf`;
     const opt = {
       margin: [0.5, 0.4, 0.5, 0.4],
       filename: filename,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
+      image: { type: 'jpeg', quality: 0.92 },
+      html2canvas: {
+        scale: escala,
+        useCORS: true,
+        logging: false,
+        onclone: function(clonedDoc) {
+          const clone = clonedDoc.getElementById('contrato-template');
+          if (clone) {
+            clone.style.position = 'static';
+            clone.style.left = 'auto';
+            clone.style.top = 'auto';
+          }
+          if (clone && clone.parentElement) {
+            clone.parentElement.style.position = 'static';
+            clone.parentElement.style.left = 'auto';
+            clone.parentElement.style.top = 'auto';
+            clone.parentElement.style.opacity = '1';
+            clone.parentElement.style.overflow = 'visible';
+          }
+        }
+      },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      pagebreak: { mode: ['css', 'legacy'] }
     };
 
     const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
-    baixarBlob(pdfBlob, filename);
-    compartilharPDFNativo(pdfBlob, filename, `Contrato ${orcamento.cliente.nome}`, `Contrato Nº ${String(orcamento.numero || 0).padStart(4, '0')}`);
-
+    baixarBlobPDF(pdfBlob, filename);
   } catch (err) {
     console.error('Erro ao gerar contrato:', err);
-    alert('Erro ao gerar contrato. Tente novamente.');
+    alert('Erro ao gerar contrato: ' + err.message);
   } finally {
-    if (btn && htmlOriginal) btn.innerHTML = htmlOriginal;
+    overlay.remove();
+    if (btn) btn.innerHTML = htmlOriginal;
+    window._pdfGerando = false;
   }
 }
 
-async function gerarPDF(id, evt) {
-  const orcamento = orcamentos.find(item => item.id === id);
-  if(!orcamento) return;
+   async function gerarPDF(id, event) {
 
-  const btn = evt?.currentTarget;
-  const htmlOriginal = btn?.innerHTML;
+const orcamento = orcamentos.find(item => item.id === id);
+if (!orcamento) return;
+
+              if (window._pdfGerando) return;
+window._pdfGerando = true;
+
+  const btn = event ? (event.currentTarget || event.target) : null;
+  const htmlOriginal = btn ? btn.innerHTML : '';
   if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
+
+  // Overlay visual enquanto gera
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(255,255,255,0.92);z-index:999999;display:flex;align-items:center;justify-content:center;font-family:sans-serif;color:#1e3a8a;font-weight:bold;font-size:14px;';
+  overlay.textContent = 'Gerando PDF...';
+  document.body.appendChild(overlay);
 
   try {
     popularTemplatePDF(orcamento);
     const element = document.getElementById('pdf-template');
-    const filename = `Cliente_${orcamento.cliente.nome.replace(/\s+/g, '_')}#${String(orcamento.numero || 0).padStart(4, '0')}.pdf`;
 
+   // 1. Espera o navegador pintar
+
+await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+// 2. Espera todas as imagens dentro do template carregarem
+const imagens = Array.from(element.querySelectorAll('img'));
+await Promise.all(imagens.map(img => {
+  if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
+  return new Promise(resolve => {
+    img.onload = resolve;
+    img.onerror = resolve; // não travar se falhar
+    // Timeout de segurança: 2s
+    setTimeout(resolve, 2000);
+  });
+}));
+
+// 3. Dá um tempo extra pro Tailwind CDN processar as classes novas
+await new Promise(r => setTimeout(r, 400));
+
+    const altura = element.scrollHeight;
+    let escala = 2;
+    if (altura > 8000) escala = 1.5;
+    if (altura > 12000) escala = 1;
+    if (altura > 20000) escala = 0.8;
+
+    const filename = `Orcamento_${orcamento.cliente.nome.replace(/\s+/g, '_')}.pdf`;
     const opt = {
       margin: [0.3, 0.3, 0.3, 0.3],
       filename: filename,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
+      image: { type: 'jpeg', quality: 0.92 },
+      html2canvas: {
+        scale: escala,
+        useCORS: true,
+        logging: false,
+        // ⭐ A MÁGICA: reexibe o template APENAS no clone que o html2canvas usa para renderizar
+        onclone: function(clonedDoc) {
+          const clone = clonedDoc.getElementById('pdf-template');
+          if (clone) {
+            clone.style.position = 'static';
+            clone.style.left = 'auto';
+            clone.style.top = 'auto';
+          }
+          if (clone && clone.parentElement) {
+            clone.parentElement.style.position = 'static';
+            clone.parentElement.style.left = 'auto';
+            clone.parentElement.style.top = 'auto';
+            clone.parentElement.style.opacity = '1';
+            clone.parentElement.style.overflow = 'visible';
+          }
+        }
+      },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // CORRIGIDO AQUI
+      pagebreak: { mode: ['css', 'legacy'] }
     };
 
     const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
-    baixarBlob(pdfBlob, filename);
-    compartilharPDFNativo(pdfBlob, filename, `Orçamento ${orcamento.cliente.nome}`, `Orçamento Nº ${String(orcamento.numero || 0).padStart(4, '0')}`);
-
+    baixarBlobPDF(pdfBlob, filename);
   } catch (err) {
-    console.error('Erro ao gerar PDF:', err);
-    alert('Erro ao gerar PDF. Tente novamente.');
+    console.error('Erro ao gerar orçamento:', err);
+    alert('Erro ao gerar PDF: ' + err.message);
   } finally {
-    if (btn && htmlOriginal) btn.innerHTML = htmlOriginal;
+    overlay.remove();
+    if (btn) btn.innerHTML = htmlOriginal;
+    window._pdfGerando = false;
   }
 }
 
-function baixarBlob(blob, filename) {
+
+
+// Download puro — sem compartilhamento
+function baixarBlobPDF(blob, filename) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -943,27 +1105,7 @@ function baixarBlob(blob, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
-function compartilharPDFNativo(pdfBlob, filename, title, text) {
-  const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
-  if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-    setTimeout(async () => {
-      try { await navigator.share({ files: [pdfFile], title: title, text: text }); } 
-      catch (shareErr) { if (shareErr.name !== 'AbortError') console.warn('Compartilhamento não disponível:', shareErr); }
-    }, 400);
-  }
-}
-
-    function enviarWhatsApp(id) {
-  const orcamento = orcamentos.find(item => item.id === id);
-  if(!orcamento) return;
-  
-  const num = (orcamento.cliente.whats || '').replace(/\D/g, '');
-  if (!num) { alert('Este cliente não tem WhatsApp cadastrado.'); return; }
-  
-  const texto = `Olá *${orcamento.cliente.nome}*!\n\nConforme conversamos, estou enviando o documento detalhado da sua obra.\n\n*Valor Total:* ${orcamento.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n*Validade:* ${orcamento.condicoes.validade}\n\nQualquer dúvida estou à disposição!`;
-  
-  window.open(`https://api.whatsapp.com/send?phone=55${num}&text=${encodeURIComponent(texto)}`, '_blank');
-}
+ 
     // ==========================================
     // FASE 3: INTELIGÊNCIA FINANCEIRA MANUAIS E CLIENTES APROVADOS
     // ==========================================
@@ -1023,18 +1165,21 @@ function compartilharPDFNativo(pdfBlob, filename, title, text) {
       const novoEndereco = document.getElementById('edit-cli-endereco').value;
 
       try {
+        // 1. Atualiza ou Cria na coleção de clientes
         if (idBD && idBD !== 'null' && idBD !== 'undefined') {
           await window.updateDoc(window.doc(window.db, "clientes", String(idBD)), { nome: novoNome, whats: novoWhats, endereco: novoEndereco });
         } else {
           await window.addDoc(window.collection(window.db, "clientes"), { uid: window.usuarioAtualId, nome: novoNome, whats: novoWhats, endereco: novoEndereco, dataCadastro: new Date().toISOString() });
         }
 
+        // 2. Atualiza Orçamentos vinculados
         const orcsParaAtualizar = orcamentos.filter(o => o.cliente.whats === whatsAntigo);
         for (let o of orcsParaAtualizar) {
           const dadosAtt = { cliente: { nome: novoNome, whats: novoWhats, endereco: novoEndereco } };
           await window.updateDoc(window.doc(window.db, "orcamentos", String(o.id)), dadosAtt);
         }
 
+        // 3. Atualiza Transações vinculadas
         const transParaAtualizar = transacoes.filter(t => t.cliente === nomeAntigo);
         for (let t of transParaAtualizar) {
           await window.updateDoc(window.doc(window.db, "transacoes", String(t.id)), { cliente: novoNome });
@@ -1048,15 +1193,13 @@ function compartilharPDFNativo(pdfBlob, filename, title, text) {
     }
 
     window.excluirCliente = async function(idBD, event) {
-      event.stopPropagation();
+      event.stopPropagation(); // Evita abrir o modal do cliente
       if(!idBD || idBD === 'null' || idBD === 'undefined') {
         alert('Este cliente está atrelado a um orçamento aprovado. Para removê-lo, você precisa excluir o orçamento dele na aba Histórico.');
         return;
       }
       if(confirm('Tem certeza que deseja excluir este cliente manual da sua carteira?')) {
-        try {
-          await window.deleteDoc(window.doc(window.db, "clientes", String(idBD)));
-        } catch(e) { alert("Erro ao excluir cliente do banco de dados."); }
+        try { await window.deleteDoc(window.doc(window.db, "clientes", String(idBD))); } catch(e) { alert("Erro ao excluir cliente do banco de dados."); }
       }
     }
 
@@ -1089,6 +1232,7 @@ function compartilharPDFNativo(pdfBlob, filename, title, text) {
       const spanQtd = document.getElementById('qtd-clientes');
       if(spanQtd) spanQtd.innerText = clientesArray.length;
 
+      // Preenche os Selects de clientes (Nova Transação e Filtro do Financeiro)
       const optionsHTML = '<option value="todos">Todos os Clientes</option>' + clientesArray.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
       const optionsTransHTML = '<option value="">Nenhum (Lançamento Avulso)</option>' + clientesArray.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
       
@@ -1112,6 +1256,7 @@ function compartilharPDFNativo(pdfBlob, filename, title, text) {
           const numZap = cli.whats ? cli.whats.replace(/\D/g, '') : '';
           const valorFechado = cli.orcamentosVinculados.reduce((acc, o) => acc + o.totalGeral, 0);
           
+          // Trata aspas nos nomes para não quebrar a função do onclick do botão editar
           const nomeSafe = cli.nome.replace(/'/g, "\\'");
           const endSafe = (cli.endereco || '').replace(/'/g, "\\'");
 
