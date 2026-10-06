@@ -820,17 +820,7 @@ const novoOrcamento = {
         const precoHTML = orcamento.ocultarValores ? '-' : s.subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
         // Retorna uma linha de tabela, mas com a classe "avoid-break" para evitar que seja cortada a meio
-   return `
-  <tr class="border-b">
-            <td class="p-1 pb-2">
-              <strong class="text-blue-900">${nomeServico}</strong>
-              <div class="text-[9px] text-slate-500 font-medium">${matTipoAtualizado}</div>
-              ${htmlMateriais}
-              ${s.obs ? `<div class="text-[10px] text-slate-700 mt-1">Obs: ${s.obs}</div>` : ''}
-            </td>
-            <td class="p-1 pb-2 align-top pt-2 text-[10px]">${textoMetrica}</td>
-            <td class="p-1 pb-2 align-top pt-2 text-right font-bold text-[10px]">${precoHTML}</td>
-          </tr>
+return `<tr class="border-b" style="page-break-inside: avoid;"><td class="p-1 pb-2"><strong class="text-blue-900">${nomeServico}</strong><div class="text-[9px] text-slate-500 font-medium">${matTipoAtualizado}</div>${htmlMateriais}${s.obs ? `<div class="text-[10px] text-slate-700 mt-1">Obs: ${s.obs}</div>` : ''}</td><td class="p-1 pb-2 align-top pt-2 text-[10px]">${textoMetrica}</td><td class="p-1 pb-2 align-top pt-2 text-right font-bold text-[10px]">${orcamento.ocultarValores ? '-' : s.subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td></tr>`;
         `;
       }).join('');
 
@@ -987,7 +977,7 @@ await new Promise(r => setTimeout(r, 400));
         }
       },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css', 'legacy'] }
+     pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
     const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
@@ -1076,7 +1066,7 @@ await new Promise(r => setTimeout(r, 400));
         }
       },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css', 'legacy'] }
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
     const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
