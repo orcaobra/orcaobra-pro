@@ -952,7 +952,7 @@ async function confirmarEGerarPDFContrato(event) {
         windowHeight: element.scrollHeight
       },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css', 'legacy'] }   // ← sem 'avoid-all'
+      pagebreak: { mode: ['css', 'legacy'], before: '.quebra-pagina' }   // ← sem 'avoid-all'
     };
 
     const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
@@ -998,7 +998,7 @@ async function confirmarEGerarPDFContrato(event) {
         windowHeight: element.scrollHeight
       },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css', 'legacy'] }
+     pagebreak: { mode: ['css', 'legacy'], before: '.quebra-pagina' }
     };
 
     const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
