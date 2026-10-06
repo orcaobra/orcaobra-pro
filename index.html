@@ -26,18 +26,9 @@
    .pdf-page-container { width: 630px; margin: 0 auto; background: white; box-sizing: border-box; }
     .avoid-break { page-break-inside: avoid !important; break-inside: avoid !important; }
   </style>
-<!-- SISTEMA DE PROTEÇÃO ANTICÓPIA -->
-  <script>
-    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); return false; }
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'u' || e.key === 'U' || e.keyCode === 85)) { e.preventDefault(); return false; }
-      if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S' || e.keyCode === 83)) { e.preventDefault(); return false; }
-      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.keyCode === 73 || e.key === 'J' || e.key === 'j' || e.keyCode === 74 || e.key === 'C' || e.key === 'c' || e.keyCode === 67)) { e.preventDefault(); return false; }
-    });
-  </script>  
+
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans pb-16 select-none">
+<body class="bg-slate-100 text-slate-800 font-sans pb-16">
 
   <!-- CABEÇALHO DA APLICAÇÃO -->
   <header class="bg-blue-800 text-white p-4 shadow-lg sticky top-0 z-40">
@@ -418,7 +409,17 @@
         <div class="text-right"><span class="inline-block bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full text-[9px] uppercase">Orçamento Profissional</span><p id="pdf-data" class="text-[10px] text-slate-500 mt-1"></p></div>
       </div>
       <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 avoid-break"><h2 class="font-bold text-slate-700 mb-0.5 border-b pb-0.5 text-[10px] uppercase tracking-wider">Dados do Cliente</h2><p><strong>Cliente:</strong> <span id="pdf-cli-nome"></span> | <strong>WhatsApp:</strong> <span id="pdf-cli-whats"></span></p><p><strong>Endereço da Obra:</strong> <span id="pdf-cli-endereco"></span></p></div>
-      <div><h2 class="font-bold text-slate-700 mb-1 border-b pb-0.5 text-[10px] uppercase tracking-wider avoid-break">Serviços e Materiais</h2><table class="w-full border-collapse"><thead><tr class="bg-slate-100 border-b text-left text-[10px] uppercase avoid-break"><th class="p-1">Especialidade / Detalhes</th><th class="p-1">Métrica</th><th id="pdf-th-subtotal" class="p-1 text-right">Subtotal</th></tr></thead><tbody id="pdf-tbody-servicos"></tbody></table></div>
+      <div>
+  <h2 class="font-bold text-slate-700 mb-1 border-b pb-0.5 text-[10px] uppercase tracking-wider avoid-break">Serviços e Materiais</h2>
+  <div class="w-full text-[10px]">
+    <div class="bg-slate-100 border-b text-[10px] uppercase avoid-break" style="display:grid; grid-template-columns: 1fr 130px 80px; gap:4px; padding:4px;">
+      <div>Especialidade / Detalhes</div>
+      <div>Métrica</div>
+      <div id="pdf-th-subtotal" style="text-align:right;">Subtotal</div>
+    </div>
+    <div id="pdf-tbody-servicos"></div>
+  </div>
+</div>
       <div class="grid grid-cols-2 gap-2 avoid-break"><div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-[10px] space-y-0.5"><p><strong>Prazo Estimado:</strong> <span id="pdf-cond-prazo"></span></p><p><strong>Forma de Pagamento:</strong> <span id="pdf-cond-pagto"></span></p><p><strong>Validade do Orçamento:</strong> <span id="pdf-cond-validade"></span></p><p><strong>Chave Pix:</strong> <span id="pdf-prof-pix"></span> (<span id="pdf-prof-pix-titular"></span>)</p></div><div class="bg-blue-50 p-2 rounded-lg border border-blue-200 flex flex-col justify-center text-right"><span class="text-[9px] text-blue-800 font-bold uppercase">VALOR TOTAL DO ORÇAMENTO</span><span id="pdf-valor-final" class="text-xl font-black text-blue-900">R$ 0,00</span></div></div>
       <div id="pdf-footer-garantia" class="border-t pt-2 mt-2 text-center text-[9px] text-slate-500 avoid-break">Garantia.</div>
     </div>
@@ -502,8 +503,20 @@
     window.atualizarTransacoesNuvem = function(dados) { transacoes = dados; if(!document.getElementById('aba-financeiro').classList.contains('hidden')) atualizarDashboardFinanceiro(); };
 
     history.replaceState({ aba: 'novo' }, '', '#novo');
-    window.addEventListener('popstate', (e) => { fecharModalContrato(); toggleModalPerfil(true); fecharModaisFinanceiro(); if (e.state && e.state.aba) { mudarAba(e.state.aba, false); } else { mudarAba('novo', false); } });
-
+   window.addEventListener('popstate', (e) => {
+  const hashAtual = location.hash;
+  // Só fecha modais se estiver saindo DE um modal
+  if (hashAtual !== '#perfil' && hashAtual !== '#contrato' && !hashAtual.startsWith('#modal-')) {
+    fecharModalContrato();
+    toggleModalPerfil(true);
+    fecharModaisFinanceiro();
+  }
+  if (e.state && e.state.aba) {
+    mudarAba(e.state.aba, false);
+  } else {
+    mudarAba('novo', false);
+  }
+});
     let servicosContador = 0; let orcamentoEditandoId = null;
 
     function inicializarAppGeral() {
@@ -820,18 +833,18 @@ const novoOrcamento = {
         const precoHTML = orcamento.ocultarValores ? '-' : s.subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
         // Retorna uma linha de tabela, mas com a classe "avoid-break" para evitar que seja cortada a meio
-   return `
-  <tr class="border-b">
-            <td class="p-1 pb-2">
-              <strong class="text-blue-900">${nomeServico}</strong>
-              <div class="text-[9px] text-slate-500 font-medium">${matTipoAtualizado}</div>
-              ${htmlMateriais}
-              ${s.obs ? `<div class="text-[10px] text-slate-700 mt-1">Obs: ${s.obs}</div>` : ''}
-            </td>
-            <td class="p-1 pb-2 align-top pt-2 text-[10px]">${textoMetrica}</td>
-            <td class="p-1 pb-2 align-top pt-2 text-right font-bold text-[10px]">${precoHTML}</td>
-          </tr>
-        `;
+  return `
+  <div class="avoid-break" style="display:grid; grid-template-columns: 1fr 130px 80px; gap:4px; padding:4px 4px 6px 4px; border-bottom:1px solid #e2e8f0;">
+    <div>
+      <strong class="text-blue-900">${nomeServico}</strong>
+      <div class="text-[9px] text-slate-500 font-medium">${matTipoAtualizado}</div>
+      ${htmlMateriais}
+      ${s.obs ? `<div class="text-[10px] text-slate-700 mt-1">Obs: ${s.obs}</div>` : ''}
+    </div>
+    <div class="text-[10px] pt-0.5">${textoMetrica}</div>
+    <div class="text-right font-bold text-[10px] pt-0.5">${precoHTML}</div>
+  </div>
+`;
       }).join('');
 
       document.getElementById('pdf-cond-prazo').innerText = orcamento.condicoes.prazo || 'A combinar'; 
