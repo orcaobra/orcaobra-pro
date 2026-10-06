@@ -880,8 +880,12 @@ async function confirmarEGerarPDFContrato(event) {
   const htmlOriginal = btn ? btn.innerHTML : '';
   if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
 
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(255,255,255,0.92);z-index:999999;display:flex;align-items:center;justify-content:center;font-family:sans-serif;color:#1e3a8a;font-weight:bold;font-size:14px;';
+  overlay.textContent = 'Gerando contrato...';
+  document.body.appendChild(overlay);
+
   try {
-    // Preenche os campos do contrato (mantém toda a sua lógica atual)
     const logoBox = document.getElementById('contrato-logo-container');
     const logoImg = document.getElementById('contrato-logo-img');
     if (perfil.logo) { logoImg.src = perfil.logo; logoBox.classList.remove('hidden'); }
@@ -929,10 +933,8 @@ async function confirmarEGerarPDFContrato(event) {
 
     const element = document.getElementById('contrato-template');
 
-    // Espera o navegador pintar o DOM
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-    // Scale adaptativo
     const altura = element.scrollHeight;
     let escala = 2;
     if (altura > 8000) escala = 1.5;
@@ -948,11 +950,23 @@ async function confirmarEGerarPDFContrato(event) {
         scale: escala,
         useCORS: true,
         logging: false,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight
+        onclone: function(clonedDoc) {
+          const clone = clonedDoc.getElementById('contrato-template');
+          if (clone) {
+            clone.style.position = 'static';
+            clone.style.left = 'auto';
+            clone.style.top = 'auto';
+          }
+          if (clone && clone.parentElement) {
+            clone.parentElement.style.position = 'static';
+            clone.parentElement.style.left = 'auto';
+            clone.parentElement.style.top = 'auto';
+            clone.parentElement.style.overflow = 'visible';
+          }
+        }
       },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css', 'legacy'], before: '.quebra-pagina' }   // ← sem 'avoid-all'
+      pagebreak: { mode: ['css', 'legacy'] }
     };
 
     const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
@@ -961,17 +975,24 @@ async function confirmarEGerarPDFContrato(event) {
     console.error('Erro ao gerar contrato:', err);
     alert('Erro ao gerar contrato: ' + err.message);
   } finally {
+    overlay.remove();
     if (btn) btn.innerHTML = htmlOriginal;
   }
 }
 
-    async function gerarPDF(id, event) {
+   async function gerarPDF(id, event) {
   const orcamento = orcamentos.find(item => item.id === id);
   if (!orcamento) return;
 
   const btn = event ? (event.currentTarget || event.target) : null;
   const htmlOriginal = btn ? btn.innerHTML : '';
   if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
+
+  // Overlay visual enquanto gera
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(255,255,255,0.92);z-index:999999;display:flex;align-items:center;justify-content:center;font-family:sans-serif;color:#1e3a8a;font-weight:bold;font-size:14px;';
+  overlay.textContent = 'Gerando PDF...';
+  document.body.appendChild(overlay);
 
   try {
     popularTemplatePDF(orcamento);
@@ -994,11 +1015,24 @@ async function confirmarEGerarPDFContrato(event) {
         scale: escala,
         useCORS: true,
         logging: false,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight
+        // ⭐ A MÁGICA: reexibe o template APENAS no clone que o html2canvas usa para renderizar
+        onclone: function(clonedDoc) {
+          const clone = clonedDoc.getElementById('pdf-template');
+          if (clone) {
+            clone.style.position = 'static';
+            clone.style.left = 'auto';
+            clone.style.top = 'auto';
+          }
+          if (clone && clone.parentElement) {
+            clone.parentElement.style.position = 'static';
+            clone.parentElement.style.left = 'auto';
+            clone.parentElement.style.top = 'auto';
+            clone.parentElement.style.overflow = 'visible';
+          }
+        }
       },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
-     pagebreak: { mode: ['css', 'legacy'], before: '.quebra-pagina' }
+      pagebreak: { mode: ['css', 'legacy'] }
     };
 
     const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
@@ -1007,6 +1041,7 @@ async function confirmarEGerarPDFContrato(event) {
     console.error('Erro ao gerar orçamento:', err);
     alert('Erro ao gerar PDF: ' + err.message);
   } finally {
+    overlay.remove();
     if (btn) btn.innerHTML = htmlOriginal;
   }
 }
