@@ -408,8 +408,17 @@
       </form>
     </div>
   </div>
-
-<div style="position: absolute; left: -99999px; top: 0; width: 800px; z-index: -1; pointer-events: none; opacity: 0.01; overflow: visible;">
+  
+<!-- Overlay branco para cobrir o template durante a geração do PDF -->
+<div id="pdf-overlay" style="position: fixed; inset: 0; background: white; z-index: 99999; display: none; align-items: center; justify-content: center;">
+  <div style="text-align: center; color: #1e3a8a; font-family: sans-serif;">
+    <div style="border: 4px solid rgba(30,58,138,0.2); border-top: 4px solid #1e3a8a; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
+    <p style="font-size: 14px; font-weight: bold;">Gerando PDF...</p>
+  </div>
+  <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+</div>
+  
+<div style="position: fixed; top: 0; left: 0; z-index: 99998; pointer-events: none;">
   <div id="pdf-template" class="pdf-page-container p-5 text-slate-800 space-y-3 text-[11px]">
       <div class="border-b-2 border-blue-800 pb-2 flex justify-between items-start avoid-break">
         <div class="space-y-1 max-w-[420px]"><div id="pdf-logo-container" class="hidden"><img id="pdf-logo-img" src="" alt="Logo" class="max-h-12 max-w-[150px] object-contain mb-1"></div><div><h1 id="pdf-prof-nome" class="text-lg font-bold text-blue-900 leading-tight">Empresa</h1><p id="pdf-prof-doc" class="text-[10px] text-slate-500"></p><p id="pdf-prof-whats" class="text-[10px] text-slate-500"></p></div></div>
@@ -422,7 +431,7 @@
     </div>
   </div>
 
-    <div style="position: absolute; left: -99999px; top: 0; width: 800px; z-index: -1; pointer-events: none; opacity: 0.01; overflow: visible;">
+    <div style="position: fixed; top: 0; left: 0; z-index: 99998; pointer-events: none;">
   <div id="contrato-template" class="pdf-page-container p-8 text-slate-900 space-y-5 text-[12px] leading-relaxed">
       <div class="text-center border-b-2 border-slate-800 pb-3"><div id="contrato-logo-container" class="hidden mb-2"><img id="contrato-logo-img" src="" alt="Logo" class="max-h-16 mx-auto object-contain"></div><h1 class="text-sm font-black uppercase text-slate-900 tracking-wide">CONTRATO DE EXECUÇÃO DE PRESTAÇÃO DE SERVIÇOS DE OBRA</h1></div>
       <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-300"><div><h2 class="font-bold text-slate-800 uppercase border-b pb-1 text-[11px] mb-2">CONTRATADA (Prestador)</h2><p><strong>Empresa/Nome:</strong> <span id="ctr-prof-nome"></span></p><p><strong>CPF/CNPJ:</strong> <span id="ctr-prof-doc"></span> | <strong>Whats:</strong> <span id="ctr-prof-whats"></span></p></div><div><h2 class="font-bold text-slate-800 uppercase border-b pb-1 text-[11px] mb-2">CONTRATANTE (Cliente)</h2><p><strong>Cliente:</strong> <span id="ctr-cli-nome"></span> | <strong>Whats:</strong> <span id="ctr-cli-whats"></span></p><p><strong>Endereço:</strong> <span id="ctr-cli-endereco"></span></p></div></div>
@@ -835,7 +844,7 @@ document.getElementById('pdf-footer-garantia').innerHTML = textoRodape + (respon
       document.getElementById('modal-editar-contrato').classList.remove('hidden');
     }
 
-  async function confirmarEGerarPDFContrato(evt) {
+ async function confirmarEGerarPDFContrato(evt) {
   const id = parseInt(document.getElementById('edit-ctr-id').value);
   const orcamento = orcamentos.find(item => item.id === id);
   if(!orcamento) return;
@@ -844,8 +853,10 @@ document.getElementById('pdf-footer-garantia').innerHTML = textoRodape + (respon
   const htmlOriginal = btn?.innerHTML;
   if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
 
+  const overlay = document.getElementById('pdf-overlay');
+  overlay.style.display = 'flex';
+
   try {
-    // Preenche o template do contrato
     const logoBox = document.getElementById('contrato-logo-container');
     const logoImg = document.getElementById('contrato-logo-img');
     if(perfil.logo) { logoImg.src = perfil.logo; logoBox.classList.remove('hidden'); } else { logoBox.classList.add('hidden'); }
@@ -891,8 +902,11 @@ document.getElementById('pdf-footer-garantia').innerHTML = textoRodape + (respon
     fecharModalContrato();
 
     const element = document.getElementById('contrato-template');
+
+    // Aguarda o navegador renderizar tudo antes de capturar
+    await new Promise(r => setTimeout(r, 350));
+
     const filename = `Contrato_${orcamento.cliente.nome.replace(/\s+/g, '_')}#${String(orcamento.numero || 0).padStart(4, '0')}.pdf`;
-    
     const opt = {
       margin: [0.5, 0.4, 0.5, 0.4],
       filename: filename,
@@ -902,13 +916,9 @@ document.getElementById('pdf-footer-garantia').innerHTML = textoRodape + (respon
       pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
-    // Gera o PDF em memória
     const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
-
-    // 1) SEMPRE baixa o arquivo
     baixarBlob(pdfBlob, filename);
 
-    // 2) Se o dispositivo suportar, abre o menu de compartilhamento
     const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
     if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
       setTimeout(async () => {
@@ -927,9 +937,11 @@ document.getElementById('pdf-footer-garantia').innerHTML = textoRodape + (respon
     console.error('Erro ao gerar contrato:', err);
     alert('Erro ao gerar contrato. Tente novamente.');
   } finally {
+    overlay.style.display = 'none';
     if (btn && htmlOriginal) btn.innerHTML = htmlOriginal;
   }
 }
+    
 async function gerarPDF(id, evt) {
   const orcamento = orcamentos.find(item => item.id === id);
   if(!orcamento) return;
@@ -938,11 +950,17 @@ async function gerarPDF(id, evt) {
   const htmlOriginal = btn?.innerHTML;
   if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
 
+  const overlay = document.getElementById('pdf-overlay');
+  overlay.style.display = 'flex';
+
   try {
     popularTemplatePDF(orcamento);
     const element = document.getElementById('pdf-template');
-    const filename = `Cliente_${orcamento.cliente.nome.replace(/\s+/g, '_')}#${String(orcamento.numero || 0).padStart(4, '0')}.pdf`;
 
+    // Aguarda o navegador renderizar tudo antes de capturar
+    await new Promise(r => setTimeout(r, 350));
+
+    const filename = `Cliente_${orcamento.cliente.nome.replace(/\s+/g, '_')}#${String(orcamento.numero || 0).padStart(4, '0')}.pdf`;
     const opt = {
       margin: [0.3, 0.3, 0.3, 0.3],
       filename: filename,
@@ -952,16 +970,11 @@ async function gerarPDF(id, evt) {
       pagebreak: { mode: ['css', 'legacy'] }
     };
 
-    // Gera o PDF em memória (sem baixar ainda)
     const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
-
-    // 1) SEMPRE baixa o arquivo
     baixarBlob(pdfBlob, filename);
 
-    // 2) Se o dispositivo suportar, abre o menu de compartilhamento
     const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
     if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-      // Pequeno delay para o download começar antes de abrir o menu
       setTimeout(async () => {
         try {
           await navigator.share({
@@ -970,9 +983,7 @@ async function gerarPDF(id, evt) {
             text: `Orçamento Nº ${String(orcamento.numero || 0).padStart(4, '0')}`
           });
         } catch (shareErr) {
-          if (shareErr.name !== 'AbortError') {
-            console.warn('Compartilhamento não disponível:', shareErr);
-          }
+          if (shareErr.name !== 'AbortError') console.warn('Compartilhamento não disponível:', shareErr);
         }
       }, 400);
     }
@@ -980,10 +991,11 @@ async function gerarPDF(id, evt) {
     console.error('Erro ao gerar PDF:', err);
     alert('Erro ao gerar PDF. Tente novamente.');
   } finally {
+    overlay.style.display = 'none';
     if (btn && htmlOriginal) btn.innerHTML = htmlOriginal;
   }
 }
-
+    
 function baixarBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
