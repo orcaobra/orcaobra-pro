@@ -876,6 +876,9 @@ async function confirmarEGerarPDFContrato(event) {
   const orcamento = orcamentos.find(item => item.id === id);
   if (!orcamento) return;
 
+  if (window._pdfGerando) return;
+  window._pdfGerando = true;
+
   const btn = event ? (event.currentTarget || event.target) : null;
   const htmlOriginal = btn ? btn.innerHTML : '';
   if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
@@ -933,7 +936,24 @@ async function confirmarEGerarPDFContrato(event) {
 
     const element = document.getElementById('contrato-template');
 
-    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    // 1. Espera o navegador pintar
+
+await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+// 2. Espera todas as imagens dentro do template carregarem
+const imagens = Array.from(element.querySelectorAll('img'));
+await Promise.all(imagens.map(img => {
+  if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
+  return new Promise(resolve => {
+    img.onload = resolve;
+    img.onerror = resolve; // não travar se falhar
+    // Timeout de segurança: 2s
+    setTimeout(resolve, 2000);
+  });
+}));
+
+// 3. Dá um tempo extra pro Tailwind CDN processar as classes novas
+await new Promise(r => setTimeout(r, 400));
 
     const altura = element.scrollHeight;
     let escala = 2;
@@ -961,6 +981,7 @@ async function confirmarEGerarPDFContrato(event) {
             clone.parentElement.style.position = 'static';
             clone.parentElement.style.left = 'auto';
             clone.parentElement.style.top = 'auto';
+            clone.parentElement.style.opacity = '1';
             clone.parentElement.style.overflow = 'visible';
           }
         }
@@ -977,12 +998,17 @@ async function confirmarEGerarPDFContrato(event) {
   } finally {
     overlay.remove();
     if (btn) btn.innerHTML = htmlOriginal;
+    window._pdfGerando = false;
   }
 }
 
    async function gerarPDF(id, event) {
-  const orcamento = orcamentos.find(item => item.id === id);
-  if (!orcamento) return;
+
+const orcamento = orcamentos.find(item => item.id === id);
+if (!orcamento) return;
+
+              if (window._pdfGerando) return;
+window._pdfGerando = true;
 
   const btn = event ? (event.currentTarget || event.target) : null;
   const htmlOriginal = btn ? btn.innerHTML : '';
@@ -998,7 +1024,24 @@ async function confirmarEGerarPDFContrato(event) {
     popularTemplatePDF(orcamento);
     const element = document.getElementById('pdf-template');
 
-    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+   // 1. Espera o navegador pintar
+
+await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+// 2. Espera todas as imagens dentro do template carregarem
+const imagens = Array.from(element.querySelectorAll('img'));
+await Promise.all(imagens.map(img => {
+  if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
+  return new Promise(resolve => {
+    img.onload = resolve;
+    img.onerror = resolve; // não travar se falhar
+    // Timeout de segurança: 2s
+    setTimeout(resolve, 2000);
+  });
+}));
+
+// 3. Dá um tempo extra pro Tailwind CDN processar as classes novas
+await new Promise(r => setTimeout(r, 400));
 
     const altura = element.scrollHeight;
     let escala = 2;
@@ -1027,6 +1070,7 @@ async function confirmarEGerarPDFContrato(event) {
             clone.parentElement.style.position = 'static';
             clone.parentElement.style.left = 'auto';
             clone.parentElement.style.top = 'auto';
+            clone.parentElement.style.opacity = '1';
             clone.parentElement.style.overflow = 'visible';
           }
         }
@@ -1043,6 +1087,7 @@ async function confirmarEGerarPDFContrato(event) {
   } finally {
     overlay.remove();
     if (btn) btn.innerHTML = htmlOriginal;
+    window._pdfGerando = false;
   }
 }
 
