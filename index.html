@@ -291,7 +291,7 @@
       <button onclick="salvarPerfil()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl shadow transition text-sm">Salvar Alterações</button>
       <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 flex justify-between items-center mt-3">
         <div><span class="block text-xs font-bold text-amber-900">Plano OrçaObra Pro</span><span id="perfil-dias-restantes" class="text-[11px] text-amber-700">Carregando...</span></div>
-        <a id="link-renovar-perfil" href="https://checkout.perfectpay.com.br/pay/PPU38CQG8G8?src=renovacao" target="_blank" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs px-3 py-2 rounded-lg shadow transition flex items-center gap-1"><i class="fa-solid fa-arrows-rotate"></i> Renovar (R$ 17,00)</a>
+        <a id="link-renovar-perfil" href="https://checkout.perfectpay.com.br/pay/PPU38CQG8G8?src=renovacao" target="_blank" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs px-3 py-2 rounded-lg shadow transition flex items-center gap-1"><i class="fa-solid fa-arrows-rotate"></i> Renovar (R$ 19,90)</a>
       </div>
             <a href="https://wa.me/233505417501?text=Ol%C3%A1%2C%20Preciso%20de%20ajuda%20com%20o%20Or%C3%A7aObra%20Pro" target="_blank" class="mt-3 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow transition text-sm flex items-center justify-center gap-2">
   <i class="fa-brands fa-whatsapp text-lg"></i> Suporte pelo WhatsApp
@@ -491,6 +491,62 @@
 
   <!-- LÓGICA DO APLICATIVO -->
   <script>
+     // ===== FUNÇÕES NOVAS (início) =====
+    function enviarWhatsApp(id) {
+      const orc = orcamentos.find(o => o.id === id);
+      if (!orc) return;
+      let num = (orc.cliente.whats || '').replace(/\D/g, '');
+      if (num && !num.startsWith('55')) num = '55' + num;
+      const total = orc.totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      const msg = `Olá ${orc.cliente.nome}! Segue o orçamento Nº ${String(orc.numero || 0).padStart(4, '0')} de ${perfil.nome || 'nossa empresa'}.\nValor total: ${total}\nPrazo: ${orc.condicoes.prazo || 'A combinar'}\nQualquer dúvida estou à disposição!`;
+      window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    let clausulaDinamicaCount = 0;
+    function adicionarClausulaDinamica() {
+      clausulaDinamicaCount++;
+      const n = clausulaDinamicaCount;
+      const div = document.createElement('div');
+      div.id = `wrap-clausula-${n}`;
+      div.innerHTML = `<label class="block font-bold text-slate-700 uppercase mb-1">Cláusula adicional #${n}</label>
+        <textarea id="edit-ctr-dinamica-${n}" rows="2" class="w-full border rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none"></textarea>`;
+      document.getElementById('container-clausulas-dinamicas').appendChild(div);
+    }
+
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault(); deferredPrompt = e;
+      document.getElementById('btn-install-pwa').classList.remove('hidden');
+    });
+    async function instalarPWA() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt(); await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      document.getElementById('btn-install-pwa').classList.add('hidden');
+    }
+
+    let gerandoPDF = false;
+    async function gerarPDFSeguro(element, opt) {
+      if (gerandoPDF) return;
+      gerandoPDF = true;
+      const limpar = () => document.querySelectorAll('.html2pdf__overlay').forEach(e => e.remove());
+      limpar();
+      window.scrollTo(0, 0);
+      try {
+        const imgs = Array.from(element.querySelectorAll('img')).filter(i => i.getAttribute('src'));
+        await Promise.all(imgs.map(i => i.complete ? null : new Promise(r => { i.onload = i.onerror = r; })));
+        await new Promise(r => setTimeout(r, 200));
+        await html2pdf().set(opt).from(element).save();
+      } catch (e) {
+        console.error(e);
+        alert('Não foi possível gerar o PDF. Tente novamente.');
+      } finally {
+        limpar();
+        gerandoPDF = false;
+      }
+    }
+    // ===== FUNÇÕES NOVAS (fim) =====
+
     if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); }); }
     let perfil = JSON.parse(localStorage.getItem('orca_perfil_v2')) || { nome: 'Sua Empresa', m2: 30, ponto: 50, diaria: 250 };
     let orcamentos = JSON.parse(localStorage.getItem('orca_lista_v2')) || [];
@@ -845,10 +901,19 @@ document.getElementById('pdf-footer-garantia').innerHTML = textoRodape + (respon
       document.querySelectorAll('[id^="edit-ctr-dinamica-"]').forEach(ta => { const text = ta.value.trim(); if(text) { dynContainer.innerHTML += `<div class="mt-2"><h3 class="font-bold text-slate-900 uppercase text-[11px] border-b pb-1 mb-1.5">CLÁUSULA ${numClausulaAtual} – DISPOSIÇÃO ADICIONAL</h3><p class="whitespace-pre-line text-justify">${text}</p></div>`; numClausulaAtual++; } });
       const tempoGarantia = orcamento.condicoes.garantia || '90 dias'; document.getElementById('out-ctr-garantia').innerText = `Integram este contrato as especificações acordadas por WhatsApp. A CONTRATADA concede a garantia legal de ${tempoGarantia} a contar da data de finalização e entrega da obra. Esta garantia cobre exclusivamente defeitos ou falhas decorrentes da execução do serviço prestado.`; document.getElementById('ctr-pix').innerText = perfil.pix || 'A combinar'; document.getElementById('ctr-pix-titular').innerText = perfil.pixTitular || 'Não informado'; document.getElementById('ctr-ass-cli').innerText = orcamento.cliente.nome; document.getElementById('ctr-ass-prof').innerText = perfil.nome || 'CONTRATADA';
       fecharModalContrato();
-      const element = document.getElementById('contrato-template'); const opt = { margin: [0.5, 0.4, 0.5, 0.4], filename: `Contrato_${orcamento.cliente.nome.replace(/\s+/g, '_')}#${String(orcamento.numero || 0).padStart(4, '0')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } }; html2pdf().set(opt).from(element).save();
+     const element = document.getElementById('contrato-template');
+const opt = {
+  margin: [0.5, 0.4, 0.5, 0.4],
+  filename: `Contrato_${orcamento.cliente.nome.replace(/\s+/g, '_')}#${String(orcamento.numero || 0).padStart(4, '0')}.pdf`,
+  image: { type: 'jpeg', quality: 0.98 },
+  html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
+  jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+  pagebreak: { mode: ['css', 'legacy'] }
+};
+gerarPDFSeguro(element, opt);
     }
 
- function gerarPDF(id) {
+function gerarPDF(id) {
   const orcamento = orcamentos.find(item => item.id === id); if(!orcamento) return;
   popularTemplatePDF(orcamento);
   const element = document.getElementById('pdf-template');
@@ -856,11 +921,11 @@ document.getElementById('pdf-footer-garantia').innerHTML = textoRodape + (respon
     margin: [0.3, 0.3, 0.3, 0.3],
     filename: `Cliente_${orcamento.cliente.nome.replace(/\s+/g, '_')}#${String(orcamento.numero || 0).padStart(4, '0')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
+    html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
     jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['css', 'legacy'] }  // ← AQUI a mudança
+    pagebreak: { mode: ['css', 'legacy'], avoid: 'tr' }
   };
-  html2pdf().set(opt).from(element).save();
+  gerarPDFSeguro(element, opt);
 }
     // ==========================================
     // FASE 3: INTELIGÊNCIA FINANCEIRA MANUAIS E CLIENTES APROVADOS
