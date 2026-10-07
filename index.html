@@ -16,8 +16,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- HTML2PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  
   <!-- jsPDF AutoTable (Para o relatório financeiro) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -295,6 +293,9 @@
         <div><span class="block text-xs font-bold text-amber-900">Plano OrçaObra Pro</span><span id="perfil-dias-restantes" class="text-[11px] text-amber-700">Carregando...</span></div>
         <a id="link-renovar-perfil" href="https://checkout.perfectpay.com.br/pay/PPU38CQG8G8?src=renovacao" target="_blank" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs px-3 py-2 rounded-lg shadow transition flex items-center gap-1"><i class="fa-solid fa-arrows-rotate"></i> Renovar (R$ 17,00)</a>
       </div>
+            <a href="https://wa.me/233505417501?text=Ol%C3%A1%2C%20Preciso%20de%20ajuda%20com%20o%20Or%C3%A7aObra%20Pro" target="_blank" class="mt-3 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow transition text-sm flex items-center justify-center gap-2">
+  <i class="fa-brands fa-whatsapp text-lg"></i> Suporte pelo WhatsApp
+</a>
     </div>
   </div>
 
@@ -835,299 +836,31 @@ document.getElementById('pdf-footer-garantia').innerHTML = textoRodape + (respon
       document.getElementById('modal-editar-contrato').classList.remove('hidden');
     }
 
-  async function confirmarEGerarPDFContrato() {
-  const id = parseInt(document.getElementById('edit-ctr-id').value);
-  const orcamento = orcamentos.find(item => item.id === id);
-  if (!orcamento) return;
-
-  const logoBox = document.getElementById('contrato-logo-container');
-  const logoImg = document.getElementById('contrato-logo-img');
-  if (perfil.logo) { logoImg.src = perfil.logo; logoBox.classList.remove('hidden'); } else { logoBox.classList.add('hidden'); }
-
-  document.getElementById('ctr-prof-nome').innerText = perfil.nome || 'Prestador de Serviço';
-  document.getElementById('ctr-prof-doc').innerText = perfil.doc || 'Não informado';
-  document.getElementById('ctr-prof-whats').innerText = perfil.whats || 'Não informado';
-  document.getElementById('ctr-cli-nome').innerText = orcamento.cliente.nome;
-  document.getElementById('ctr-cli-whats').innerText = orcamento.cliente.whats;
-  document.getElementById('ctr-cli-endereco').innerText = orcamento.cliente.endereco || 'Não informado';
-  document.getElementById('out-ctr-c1').innerText = document.getElementById('edit-ctr-c1').value;
-  document.getElementById('out-ctr-c2').innerText = document.getElementById('edit-ctr-c2').value;
-  document.getElementById('out-ctr-c3').innerText = document.getElementById('edit-ctr-c3').value;
-  document.getElementById('out-ctr-c4').innerText = document.getElementById('edit-ctr-c4').value;
-
-  const extras = document.getElementById('edit-ctr-extras').value;
-  const boxExtras = document.getElementById('ctr-box-extras');
-  if (extras && extras.trim() !== '') {
-    document.getElementById('out-ctr-extras').innerText = extras;
-    boxExtras.classList.remove('hidden');
-  } else {
-    boxExtras.classList.add('hidden');
-  }
-
-  const dynContainer = document.getElementById('ctr-dynamic-clauses');
-  dynContainer.innerHTML = '';
-  let numClausulaAtual = 6;
-  document.querySelectorAll('[id^="edit-ctr-dinamica-"]').forEach(ta => {
-    const text = ta.value.trim();
-    if (text) {
-      dynContainer.innerHTML += `<div class="mt-2"><h3 class="font-bold text-slate-900 uppercase text-[11px] border-b pb-1 mb-1.5">CLÁUSULA ${numClausulaAtual} – DISPOSIÇÃO ADICIONAL</h3><p class="whitespace-pre-line text-justify"></p></div>`;
-      dynContainer.lastElementChild.querySelector('p').textContent = text; // textContent evita HTML injetado
-      numClausulaAtual++;
-    }
-  });
-
-  const tempoGarantia = orcamento.condicoes.garantia || '90 dias';
-  document.getElementById('out-ctr-garantia').innerText = `Integram este contrato as especificações acordadas por WhatsApp. A CONTRATADA concede a garantia legal de ${tempoGarantia} a contar da data de finalização e entrega da obra. Esta garantia cobre exclusivamente defeitos ou falhas decorrentes da execução do serviço prestado.`;
-  document.getElementById('ctr-pix').innerText = perfil.pix || 'A combinar';
-  document.getElementById('ctr-pix-titular').innerText = perfil.pixTitular || 'Não informado';
-  document.getElementById('ctr-ass-cli').innerText = orcamento.cliente.nome;
-  document.getElementById('ctr-ass-prof').innerText = perfil.nome || 'CONTRATADA';
-
-  fecharModalContrato();
-
-  const nomeArquivo = `Contrato_${orcamento.cliente.nome.replace(/\s+/g, '_')}#${String(orcamento.numero || 0).padStart(4, '0')}.pdf`;
-  await gerarPDFContratoPaginado(nomeArquivo);
-}
-
-    async function gerarPDFContratoPaginado(nomeArquivo) {
-  const PAGE_W = 700, PAGE_H = 990; // proporção A4
-  const tpl = document.getElementById('contrato-template');
-  const classesPagina = tpl.className; // mantém p-8, text-[12px], space-y-5 etc.
-  const scale = /iPhone|iPad|Android/i.test(navigator.userAgent) ? 1.5 : 2;
-
-  // ---- 1) Quebra o contrato em "unidades" ----
-  // atômica: cabeçalho, partes, assinaturas (nunca divide)
-  // cláusula: título + texto (pode dividir por linhas se for grande)
-  function criarUnidade(el) {
-    const h3 = el.querySelector(':scope > h3');
-    const p = el.querySelector(':scope > p');
-    if (h3 && p && !el.classList.contains('avoid-break')) {
-      const idx = Array.from(el.children).indexOf(p);
-      return {
-        tipo: 'clausula', el, h3, p,
-        linhas: p.textContent.split('\n'),
-        tail: Array.from(el.children).slice(idx + 1) // ex.: caixa do Pix na cláusula 4
-      };
-    }
-    return { tipo: 'atomico', el };
-  }
-
-  const units = [];
-  Array.from(tpl.children).forEach(child => {
-    if (child.classList.contains('hidden')) return;
-    if (child.id === 'ctr-dynamic-clauses') {
-      Array.from(child.children).forEach(c => units.push(criarUnidade(c)));
-      return;
-    }
-    units.push(criarUnidade(child));
-  });
-
-  // ---- 2) Tela de "gerando" + palco de renderização ----
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:#fff;z-index:99999;display:flex;align-items:center;justify-content:center;font:bold 14px sans-serif;color:#1e3a8a';
-  overlay.innerText = 'Gerando contrato...';
-  const stage = document.createElement('div');
-  stage.style.cssText = `position:fixed;left:0;top:0;width:${PAGE_W}px;z-index:-1;background:#fff`;
-  document.body.appendChild(stage);
-  document.body.appendChild(overlay);
-
-  try {
-    if (document.fonts && document.fonts.ready) await document.fonts.ready;
-    const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-
-    let u = 0;            // unidade atual
-    let linhaIni = 0;     // progresso dentro da cláusula atual
-    let tailPendente = false;
-    let numPagina = 0;
-
-    while (u < units.length) {
-      const pagina = document.createElement('div');
-      pagina.className = classesPagina;
-      pagina.style.cssText = `width:${PAGE_W}px;background:#fff;box-sizing:border-box;margin:0`;
-      stage.innerHTML = '';
-      stage.appendChild(pagina);
-
-      let conteudo = 0; // itens já colocados nesta página
-
-      while (u < units.length) {
-        const un = units[u];
-
-        // ----- unidade atômica -----
-        if (un.tipo === 'atomico') {
-          const c = un.el.cloneNode(true);
-          pagina.appendChild(c);
-          await Promise.all(Array.from(c.querySelectorAll('img')).map(img => img.decode ? img.decode().catch(() => {}) : null));
-          if (pagina.offsetHeight > PAGE_H && conteudo > 0) { pagina.removeChild(c); break; }
-          conteudo++; u++;
-          continue;
-        }
-
-        // ----- cláusula (pode dividir) -----
-        const continuacao = linhaIni > 0 || tailPendente;
-        const wrap = un.el.cloneNode(false);
-        const h3 = un.h3.cloneNode(true);
-        if (continuacao) h3.textContent += ' (continuação)';
-        wrap.appendChild(h3);
-
-        const temLinhas = linhaIni < un.linhas.length;
-        const p = un.p.cloneNode(false);
-        if (temLinhas) wrap.appendChild(p);
-        pagina.appendChild(wrap);
-
-        let paginaCheia = false;
-
-        if (temLinhas) {
-          let k = linhaIni;
-          while (k < un.linhas.length) {
-            p.textContent = un.linhas.slice(linhaIni, k + 1).join('\n');
-            if (pagina.offsetHeight > PAGE_H && (k > linhaIni || conteudo > 0)) {
-              if (k > linhaIni) {
-                // coube parte da cláusula: mantém o que coube e continua na próxima página
-                p.textContent = un.linhas.slice(linhaIni, k).join('\n');
-                linhaIni = k;
-                while (linhaIni < un.linhas.length && un.linhas[linhaIni].trim() === '') linhaIni++;
-                conteudo++;
-              } else {
-                // nem a primeira linha coube: tira tudo e abre nova página
-                pagina.removeChild(wrap);
-              }
-              paginaCheia = true;
-              break;
-            }
-            k++;
-          }
-          if (!paginaCheia) linhaIni = un.linhas.length; // todas as linhas couberam
-        }
-
-        if (paginaCheia) break;
-
-        // texto terminou: agora o "rabo" da cláusula (ex.: chave Pix)
-        const clonesTail = un.tail.map(t => t.cloneNode(true));
-        clonesTail.forEach(t => wrap.appendChild(t));
-        if (pagina.offsetHeight > PAGE_H && (conteudo > 0 || temLinhas)) {
-          clonesTail.forEach(t => wrap.removeChild(t));
-          if (!temLinhas && wrap.parentNode === pagina && conteudo > 0) pagina.removeChild(wrap);
-          tailPendente = true;
-          conteudo++;
-          break;
-        }
-
-        // cláusula concluída
-        conteudo++; u++; linhaIni = 0; tailPendente = false;
-      }
-
-      // ---- 3) Captura a página ----
-      pagina.style.height = PAGE_H + 'px';
-      await Promise.all(Array.from(pagina.querySelectorAll('img')).map(img => img.decode ? img.decode().catch(() => {}) : null));
-      const canvas = await html2canvas(pagina, {
-        scale, backgroundColor: '#ffffff', useCORS: true,
-        scrollX: 0, scrollY: 0, windowWidth: PAGE_W
-      });
-      if (numPagina > 0) pdf.addPage();
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.9), 'JPEG', 0, 0, 210, 297);
-      canvas.width = canvas.height = 0; // libera memória (importante no iPhone)
-      numPagina++;
-      await new Promise(r => setTimeout(r, 0));
+    function confirmarEGerarPDFContrato() {
+      const id = parseInt(document.getElementById('edit-ctr-id').value); const orcamento = orcamentos.find(item => item.id === id); if(!orcamento) return;
+      const logoBox = document.getElementById('contrato-logo-container'); const logoImg = document.getElementById('contrato-logo-img'); if(perfil.logo) { logoImg.src = perfil.logo; logoBox.classList.remove('hidden'); } else { logoBox.classList.add('hidden'); }
+      document.getElementById('ctr-prof-nome').innerText = perfil.nome || 'Prestador de Serviço'; document.getElementById('ctr-prof-doc').innerText = perfil.doc || 'Não informado'; document.getElementById('ctr-prof-whats').innerText = perfil.whats || 'Não informado'; document.getElementById('ctr-cli-nome').innerText = orcamento.cliente.nome; document.getElementById('ctr-cli-whats').innerText = orcamento.cliente.whats; document.getElementById('ctr-cli-endereco').innerText = orcamento.cliente.endereco || 'Não informado'; document.getElementById('out-ctr-c1').innerText = document.getElementById('edit-ctr-c1').value; document.getElementById('out-ctr-c2').innerText = document.getElementById('edit-ctr-c2').value; document.getElementById('out-ctr-c3').innerText = document.getElementById('edit-ctr-c3').value; document.getElementById('out-ctr-c4').innerText = document.getElementById('edit-ctr-c4').value;
+      const extras = document.getElementById('edit-ctr-extras').value; const boxExtras = document.getElementById('ctr-box-extras'); if(extras && extras.trim() !== '') { document.getElementById('out-ctr-extras').innerText = extras; boxExtras.classList.remove('hidden'); } else { boxExtras.classList.add('hidden'); }
+      const dynContainer = document.getElementById('ctr-dynamic-clauses'); dynContainer.innerHTML = ''; let numClausulaAtual = 6; 
+      document.querySelectorAll('[id^="edit-ctr-dinamica-"]').forEach(ta => { const text = ta.value.trim(); if(text) { dynContainer.innerHTML += `<div class="mt-2"><h3 class="font-bold text-slate-900 uppercase text-[11px] border-b pb-1 mb-1.5">CLÁUSULA ${numClausulaAtual} – DISPOSIÇÃO ADICIONAL</h3><p class="whitespace-pre-line text-justify">${text}</p></div>`; numClausulaAtual++; } });
+      const tempoGarantia = orcamento.condicoes.garantia || '90 dias'; document.getElementById('out-ctr-garantia').innerText = `Integram este contrato as especificações acordadas por WhatsApp. A CONTRATADA concede a garantia legal de ${tempoGarantia} a contar da data de finalização e entrega da obra. Esta garantia cobre exclusivamente defeitos ou falhas decorrentes da execução do serviço prestado.`; document.getElementById('ctr-pix').innerText = perfil.pix || 'A combinar'; document.getElementById('ctr-pix-titular').innerText = perfil.pixTitular || 'Não informado'; document.getElementById('ctr-ass-cli').innerText = orcamento.cliente.nome; document.getElementById('ctr-ass-prof').innerText = perfil.nome || 'CONTRATADA';
+      fecharModalContrato();
+      const element = document.getElementById('contrato-template'); const opt = { margin: [0.5, 0.4, 0.5, 0.4], filename: `Contrato_${orcamento.cliente.nome.replace(/\s+/g, '_')}#${String(orcamento.numero || 0).padStart(4, '0')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } }; html2pdf().set(opt).from(element).save();
     }
 
-    pdf.save(nomeArquivo);
-  } catch (err) {
-    console.error(err);
-    alert('Erro ao gerar o contrato: ' + err.message);
-  } finally {
-    stage.remove();
-    overlay.remove();
-  }
-}
-    
-async function gerarPDF(id) {
-  const orcamento = orcamentos.find(item => item.id === id);
-  if (!orcamento) return;
+ function gerarPDF(id) {
+  const orcamento = orcamentos.find(item => item.id === id); if(!orcamento) return;
   popularTemplatePDF(orcamento);
-
-  const PAGE_W = 700, PAGE_H = 990; // proporção A4
-  const tpl = document.getElementById('pdf-template');
-  const [header, cliente, servicosBox, condicoes, rodape] = Array.from(tpl.children);
-  const linhas = Array.from(document.querySelectorAll('#pdf-tbody-servicos > tr'));
-  const classesPagina = 'pdf-page-container p-5 text-slate-800 space-y-3 text-[11px]';
-  const scale = /iPhone|iPad|Android/i.test(navigator.userAgent) ? 1.5 : 2;
-
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:#fff;z-index:99999;display:flex;align-items:center;justify-content:center;font:bold 14px sans-serif;color:#1e3a8a';
-  overlay.innerText = 'Gerando PDF...';
-  const stage = document.createElement('div');
-  stage.style.cssText = `position:fixed;left:0;top:0;width:${PAGE_W}px;z-index:-1;background:#fff`;
-  document.body.appendChild(stage);
-  document.body.appendChild(overlay);
-
-  try {
-    if (document.fonts && document.fonts.ready) await document.fonts.ready;
-    const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-    let i = 0, numPagina = 0, finalizado = false;
-
-    while (!finalizado) {
-      const pagina = document.createElement('div');
-      pagina.className = classesPagina;
-      pagina.style.cssText = `width:${PAGE_W}px;background:#fff;box-sizing:border-box`;
-
-      // Cabeçalho e dados do cliente: SOMENTE na primeira página
-      if (numPagina === 0) {
-        pagina.appendChild(header.cloneNode(true));
-        pagina.appendChild(cliente.cloneNode(true));
-      }
-
-      let tbody = null;
-      if (i < linhas.length) {
-        const box = servicosBox.cloneNode(true);
-        tbody = box.querySelector('tbody');
-        tbody.innerHTML = '';
-        pagina.appendChild(box);
-      }
-
-      stage.innerHTML = '';
-      stage.appendChild(pagina);
-      await Promise.all(Array.from(pagina.querySelectorAll('img')).map(img => img.decode ? img.decode().catch(() => {}) : null));
-
-      // encaixa linhas até encher a página
-      let colocadas = 0;
-      while (tbody && i < linhas.length) {
-        const tr = linhas[i].cloneNode(true);
-        tbody.appendChild(tr);
-        if (pagina.offsetHeight > PAGE_H && colocadas > 0) { tbody.removeChild(tr); break; }
-        i++; colocadas++;
-      }
-
-      // acabaram as linhas: condições + rodapé SOMENTE na última página
-      if (i >= linhas.length) {
-        const c = condicoes.cloneNode(true), r = rodape.cloneNode(true);
-        pagina.appendChild(c); pagina.appendChild(r);
-        if (pagina.offsetHeight > PAGE_H && colocadas > 0) {
-          pagina.removeChild(c); pagina.removeChild(r); // vão sozinhos para a próxima (última) página
-        } else {
-          finalizado = true;
-        }
-      }
-
-      pagina.style.height = PAGE_H + 'px';
-      const canvas = await html2canvas(pagina, {
-        scale, backgroundColor: '#ffffff', useCORS: true,
-        scrollX: 0, scrollY: 0, windowWidth: PAGE_W
-      });
-      if (numPagina > 0) pdf.addPage();
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.9), 'JPEG', 0, 0, 210, 297);
-      canvas.width = canvas.height = 0;
-      numPagina++;
-      await new Promise(r => setTimeout(r, 0));
-    }
-
-    pdf.save(`Cliente_${orcamento.cliente.nome.replace(/\s+/g, '_')}#${String(orcamento.numero || 0).padStart(4, '0')}.pdf`);
-  } catch (err) {
-    console.error(err);
-    alert('Erro ao gerar o PDF: ' + err.message);
-  } finally {
-    stage.remove();
-    overlay.remove();
-  }
+  const element = document.getElementById('pdf-template');
+  const opt = {
+    margin: [0.3, 0.3, 0.3, 0.3],
+    filename: `Cliente_${orcamento.cliente.nome.replace(/\s+/g, '_')}#${String(orcamento.numero || 0).padStart(4, '0')}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'] }  // ← AQUI a mudança
+  };
+  html2pdf().set(opt).from(element).save();
 }
     // ==========================================
     // FASE 3: INTELIGÊNCIA FINANCEIRA MANUAIS E CLIENTES APROVADOS
