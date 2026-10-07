@@ -319,6 +319,7 @@
       <div class="flex gap-2 border-t pt-3">
         <button onclick="fecharModalContrato()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl text-xs transition">Cancelar</button>
         <button onclick="confirmarEGerarPDFContrato()" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2.5 rounded-xl shadow text-xs transition flex items-center justify-center gap-1"><i class="fa-solid fa-file-pdf"></i> Baixar PDF do Contrato</button>
+                <button onclick="compartilharContrato()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl shadow text-xs transition flex items-center justify-center gap-1"><i class="fa-solid fa-share-nodes"></i> Compartilhar</button>
       </div>
     </div>
   </div>
@@ -545,7 +546,149 @@
         gerandoPDF = false;
       }
     }
+        // ===== COMPARTILHAR PDF (início) =====
+    function baixarBlobPDF(blob, nomeArquivo) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = nomeArquivo;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }
+
+    async function compartilharPDF(id) {
+      const orcamento = orcamentos.find(item => item.id === id); if (!orcamento) return;
+      if (gerandoPDF) return;
+      gerandoPDF = true;
+      const limpar = () => document.querySelectorAll('.html2pdf__overlay').forEach(e => e.remove());
+      limpar();
+      const numero = String(orcamento.numero || 0).padStart(4, '0');
+      const nomeArquivo = `Orcamento_${orcamento.cliente.nome.replace(/\s+/g, '_')}_${numero}.pdf`;
+      let blob = null;
+      try {
+        popularTemplatePDF(orcamento);
+        const element = document.getElementById('pdf-template');
+        window.scrollTo(0, 0);
+        const imgs = Array.from(element.querySelectorAll('img')).filter(i => i.getAttribute('src'));
+        await Promise.all(imgs.map(i => i.complete ? null : new Promise(r => { i.onload = i.onerror = r; })));
+        await new Promise(r => setTimeout(r, 200));
+        const opt = {
+          margin: [0.3, 0.3, 0.3, 0.3],
+          filename: nomeArquivo,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
+          jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['css', 'legacy'], avoid: 'tr' }
+        };
+        blob = await html2pdf().set(opt).from(element).outputPdf('blob');
+        const file = new File([blob], nomeArquivo, { type: 'application/pdf' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `Orçamento Nº ${numero}`,
+            text: `Orçamento Nº ${numero} - ${perfil.nome || ''}`
+          });
+        } else {
+          baixarBlobPDF(blob, nomeArquivo);
+          alert('Este aparelho não permite compartilhar direto. O PDF foi baixado, é só enviar o arquivo.');
+        }
+      } catch (e) {
+        if (e && e.name === 'AbortError') {
+          // a pessoa fechou a janela de compartilhar, não é erro
+        } else if (blob) {
+          baixarBlobPDF(blob, nomeArquivo);
+          alert('Não foi possível abrir o compartilhamento. O PDF foi baixado, é só enviar o arquivo.');
+        } else {
+          console.error(e);
+          alert('Não foi possível gerar o PDF. Tente novamente.');
+        }
+      } finally {
+        limpar();
+        gerandoPDF = false;
+      }
+    }
+    // ===== COMPARTILHAR PDF (fim) =====
+    
+        // ===== COMPARTILHAR CONTRATO (início) =====
+    async function compartilharContrato() {
+      const id = parseInt(document.getElementById('edit-ctr-id').value);
+      const orcamento = orcamentos.find(item => item.id === id); if (!orcamento) return;
+      if (gerandoPDF) return;
+      gerandoPDF = true;
+      const limpar = () => document.querySelectorAll('.html2pdf__overlay').forEach(e => e.remove());
+      limpar();
+      const numero = String(orcamento.numero || 0).padStart(4, '0');
+      const nomeArquivo = `Contrato_${orcamento.cliente.nome.replace(/\s+/g, '_')}_${numero}.pdf`;
+      let blob = null;
+      try {
+        const logoBox = document.getElementById('contrato-logo-container'); const logoImg = document.getElementById('contrato-logo-img');
+        if (perfil.logo) { logoImg.src = perfil.logo; logoBox.classList.remove('hidden'); } else { logoBox.classList.add('hidden'); }
+        document.getElementById('ctr-prof-nome').innerText = perfil.nome || 'Prestador de Serviço';
+        document.getElementById('ctr-prof-doc').innerText = perfil.doc || 'Não informado';
+        document.getElementById('ctr-prof-whats').innerText = perfil.whats || 'Não informado';
+        document.getElementById('ctr-cli-nome').innerText = orcamento.cliente.nome;
+        document.getElementById('ctr-cli-whats').innerText = orcamento.cliente.whats;
+        document.getElementById('ctr-cli-endereco').innerText = orcamento.cliente.endereco || 'Não informado';
+        document.getElementById('out-ctr-c1').innerText = document.getElementById('edit-ctr-c1').value;
+        document.getElementById('out-ctr-c2').innerText = document.getElementById('edit-ctr-c2').value;
+        document.getElementById('out-ctr-c3').innerText = document.getElementById('edit-ctr-c3').value;
+        document.getElementById('out-ctr-c4').innerText = document.getElementById('edit-ctr-c4').value;
+        const extras = document.getElementById('edit-ctr-extras').value; const boxExtras = document.getElementById('ctr-box-extras');
+        if (extras && extras.trim() !== '') { document.getElementById('out-ctr-extras').innerText = extras; boxExtras.classList.remove('hidden'); } else { boxExtras.classList.add('hidden'); }
+        const dynContainer = document.getElementById('ctr-dynamic-clauses'); dynContainer.innerHTML = ''; let numClausulaAtual = 6;
+        document.querySelectorAll('[id^="edit-ctr-dinamica-"]').forEach(ta => {
+          const text = ta.value.trim();
+          if (text) { dynContainer.innerHTML += `<div class="mt-2"><h3 class="font-bold text-slate-900 uppercase text-[11px] border-b pb-1 mb-1.5">CLÁUSULA ${numClausulaAtual} – DISPOSIÇÃO ADICIONAL</h3><p class="whitespace-pre-line text-justify">${text}</p></div>`; numClausulaAtual++; }
+        });
+        const tempoGarantia = orcamento.condicoes.garantia || '90 dias';
+        document.getElementById('out-ctr-garantia').innerText = `Integram este contrato as especificações acordadas por WhatsApp. A CONTRATADA concede a garantia legal de ${tempoGarantia} a contar da data de finalização e entrega da obra. Esta garantia cobre exclusivamente defeitos ou falhas decorrentes da execução do serviço prestado.`;
+        document.getElementById('ctr-pix').innerText = perfil.pix || 'A combinar';
+        document.getElementById('ctr-pix-titular').innerText = perfil.pixTitular || 'Não informado';
+        document.getElementById('ctr-ass-cli').innerText = orcamento.cliente.nome;
+        document.getElementById('ctr-ass-prof').innerText = perfil.nome || 'CONTRATADA';
+
+        const element = document.getElementById('contrato-template');
+        window.scrollTo(0, 0);
+        const imgs = Array.from(element.querySelectorAll('img')).filter(i => i.getAttribute('src'));
+        await Promise.all(imgs.map(i => i.complete ? null : new Promise(r => { i.onload = i.onerror = r; })));
+        await new Promise(r => setTimeout(r, 200));
+        const opt = {
+          margin: [0.5, 0.4, 0.5, 0.4],
+          filename: nomeArquivo,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
+          jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['css', 'legacy'] }
+        };
+        blob = await html2pdf().set(opt).from(element).outputPdf('blob');
+        const file = new File([blob], nomeArquivo, { type: 'application/pdf' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: `Contrato Nº ${numero}`, text: `Contrato Nº ${numero} - ${perfil.nome || ''}` });
+          fecharModalContrato();
+        } else {
+          baixarBlobPDF(blob, nomeArquivo);
+          fecharModalContrato();
+          alert('Este aparelho não permite compartilhar direto. O PDF foi baixado, é só enviar o arquivo.');
+        }
+      } catch (e) {
+        if (e && e.name === 'AbortError') {
+          // a pessoa fechou a janela de compartilhar, não é erro
+        } else if (blob) {
+          baixarBlobPDF(blob, nomeArquivo);
+          fecharModalContrato();
+          alert('Não foi possível abrir o compartilhamento. O PDF foi baixado, é só enviar o arquivo.');
+        } else {
+          console.error(e);
+          alert('Não foi possível gerar o PDF. Tente novamente.');
+        }
+      } finally {
+        limpar();
+        gerandoPDF = false;
+      }
+    }
+    // ===== COMPARTILHAR CONTRATO (fim) =====
+    
     // ===== FUNÇÕES NOVAS (fim) =====
+
 
     if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); }); }
     let perfil = JSON.parse(localStorage.getItem('orca_perfil_v2')) || { nome: 'Sua Empresa', m2: 30, ponto: 50, diaria: 250 };
@@ -844,6 +987,7 @@ const novoOrcamento = {
           ${item.status === 'Pendente' ? `<button onclick="editarOrcamento(${item.id})" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 shadow"><i class="fa-solid fa-pen"></i> Editar</button>` : ''}
           <button onclick="gerarPDF(${item.id})" class="bg-slate-800 hover:bg-black text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 shadow"><i class="fa-solid fa-file-pdf text-red-400"></i> Orçamento</button>
           ${item.status === 'Aprovado' ? `<button onclick="abrirModalEditarContrato(${item.id})" class="bg-blue-800 hover:bg-blue-900 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 shadow"><i class="fa-solid fa-file-contract text-amber-300"></i> Contrato</button>` : ''}
+                    <button onclick="compartilharPDF(${item.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 shadow"><i class="fa-solid fa-share-nodes"></i> Compartilhar</button>
           <button onclick="enviarWhatsApp(${item.id})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 shadow"><i class="fa-brands fa-whatsapp"></i> Whats</button>
           <button onclick="excluirOrcamento(${item.id})" class="text-slate-400 hover:text-red-600 p-2 text-xs"><i class="fa-solid fa-trash"></i></button>
         </div>
