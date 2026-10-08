@@ -719,7 +719,32 @@
     function fecharModalContrato() { document.getElementById('modal-editar-contrato').classList.add('hidden'); if(location.hash === '#contrato') history.back(); }
     function atualizarCabecalhoEmpresa() { const b = document.getElementById('header-logo-container'); const i = document.getElementById('header-logo-img'); if(perfil.logo) { i.src = perfil.logo; b.classList.remove('hidden'); } else { b.classList.add('hidden'); } }
     function carregarPerfilForm() { document.getElementById('prof-nome').value=perfil.nome||''; document.getElementById('prof-whats').value=perfil.whats||''; document.getElementById('prof-doc').value=perfil.doc||''; document.getElementById('prof-pix').value=perfil.pix||''; document.getElementById('prof-pix-titular').value=perfil.pixTitular||''; document.getElementById('prof-padrao-m2').value=perfil.m2||''; document.getElementById('prof-padrao-ponto').value=perfil.ponto||''; document.getElementById('prof-padrao-diaria').value=perfil.diaria||''; if(perfil.logo){ document.getElementById('preview-logo-img').src=perfil.logo; document.getElementById('preview-logo-img').classList.remove('hidden'); document.getElementById('preview-logo-icon').classList.add('hidden'); document.getElementById('btn-remover-logo').classList.remove('hidden'); } }
-    function carregarLogoEmBase64(event) { const file=event.target.files[0]; if(file){ const reader=new FileReader(); reader.onload=function(e){ perfil.logo=e.target.result; document.getElementById('preview-logo-img').src=perfil.logo; document.getElementById('preview-logo-img').classList.remove('hidden'); document.getElementById('preview-logo-icon').classList.add('hidden'); document.getElementById('btn-remover-logo').classList.remove('hidden'); }; reader.readAsDataURL(file); } }
+       function carregarLogoEmBase64(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = new Image();
+        img.onload = function () {
+          const max = 400;
+          const escala = Math.min(1, max / Math.max(img.width, img.height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * escala);
+          canvas.height = Math.round(img.height * escala);
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          perfil.logo = canvas.toDataURL('image/jpeg', 0.85);
+          document.getElementById('preview-logo-img').src = perfil.logo;
+          document.getElementById('preview-logo-img').classList.remove('hidden');
+          document.getElementById('preview-logo-icon').classList.add('hidden');
+          document.getElementById('btn-remover-logo').classList.remove('hidden');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
     function removerLogo() { perfil.logo=''; document.getElementById('preview-logo-img').src=''; document.getElementById('preview-logo-img').classList.add('hidden'); document.getElementById('preview-logo-icon').classList.remove('hidden'); document.getElementById('btn-remover-logo').classList.add('hidden'); document.getElementById('input-logo-file').value=''; }
     function salvarPerfil() { perfil.nome=document.getElementById('prof-nome').value; perfil.whats=document.getElementById('prof-whats').value; perfil.doc=document.getElementById('prof-doc').value; perfil.pix=document.getElementById('prof-pix').value; perfil.pixTitular=document.getElementById('prof-pix-titular').value; perfil.m2=parseFloat(document.getElementById('prof-padrao-m2').value)||0; perfil.ponto=parseFloat(document.getElementById('prof-padrao-ponto').value)||0; perfil.diaria=parseFloat(document.getElementById('prof-padrao-diaria').value)||0; localStorage.setItem('orca_perfil_v2',JSON.stringify(perfil)); atualizarCabecalhoEmpresa(); toggleModalPerfil(); alert('Perfil atualizado com sucesso!'); }
 
