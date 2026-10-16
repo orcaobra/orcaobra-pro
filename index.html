@@ -400,9 +400,16 @@
         <div><label class="block text-xs font-semibold text-slate-600 mb-1">Categoria *</label><select id="trans-categoria" required class="w-full border border-slate-300 rounded-xl p-2.5 text-sm outline-none"></select></div>
         <div id="box-trans-cliente">
           <label class="block text-xs font-semibold text-slate-600 mb-1">Cliente / Obra Vinculada</label>
-          <select id="trans-cliente" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm outline-none">
+          <select id="trans-cliente" onchange="atualizarOrcamentosDaTransacao()" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm outline-none">
             <option value="">Nenhum (Lançamento Avulso)</option>
           </select>
+        </div>
+        <div id="box-trans-orcamento" class="hidden">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Orçamento vinculado (opcional)</label>
+          <select id="trans-orcamento" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm outline-none">
+            <option value="">Nenhum</option>
+          </select>
+          <p class="text-[10px] text-slate-500 italic mt-1">Se escolher um orçamento, o recibo mostrará os serviços dele.</p>
         </div>
         <div><label class="block text-xs font-semibold text-slate-600 mb-1">Valor (R$) *</label><input type="number" id="trans-valor" step="0.01" required class="w-full border border-slate-300 rounded-xl p-2.5 text-sm outline-none"></div>
         <div><label class="block text-xs font-semibold text-slate-600 mb-1">Descrição</label><input type="text" id="trans-obs" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm outline-none"></div>
@@ -478,6 +485,10 @@
         <p id="recibo-linha-descricao">
           <strong>Descrição:</strong> <span id="recibo-descricao"></span>
         </p>
+        <div id="recibo-linha-orcamento" class="hidden bg-slate-50 border border-slate-300 rounded-lg p-3">
+          <p><strong>Referente ao Orçamento Nº <span id="recibo-numero-orcamento"></span></strong></p>
+          <p class="mt-1"><strong>Serviços:</strong> <span id="recibo-servicos-lista"></span></p>
+        </div>
         <p>
           <strong>Data do recebimento:</strong> <span id="recibo-data-recebimento"></span>
         </p>
@@ -1241,6 +1252,10 @@ function gerarPDF(id) {
       document.getElementById('form-novo-cliente').reset();
       document.getElementById('form-editar-cliente').reset();
       document.getElementById('form-transacao').reset();
+      const orcSelect = document.getElementById('trans-orcamento');
+      if (orcSelect) orcSelect.innerHTML = '<option value="">Nenhum</option>';
+      const orcBox = document.getElementById('box-trans-orcamento');
+      if (orcBox) orcBox.classList.add('hidden');
       if(location.hash.includes('modal-')) history.back();
     }
 
@@ -1585,6 +1600,45 @@ window.criarOrcamentoParaClienteAtual = function() {
 };
 
     // --- FINANCEIRO (LANÇAMENTOS MANUAIS) ---
+    function atualizarOrcamentosDaTransacao() {
+      const tipo = document.getElementById('trans-tipo').value;
+      const box = document.getElementById('box-trans-orcamento');
+      const select = document.getElementById('trans-orcamento');
+      const nomeCliente = document.getElementById('trans-cliente').value;
+
+      // Só entradas podem ter recibo vinculado a orçamento
+      if (tipo !== 'entrada' || !nomeCliente) {
+        box.classList.add('hidden');
+        select.innerHTML = '<option value="">Nenhum</option>';
+        return;
+      }
+
+      const orcsCliente = orcamentos.filter(o =>
+        o.cliente.nome === nomeCliente &&
+        (o.status === 'Aprovado' || o.status === 'Concluído')
+      );
+
+      if (orcsCliente.length === 0) {
+        box.classList.add('hidden');
+        select.innerHTML = '<option value="">Nenhum</option>';
+        return;
+      }
+
+      box.classList.remove('hidden');
+      select.innerHTML = '<option value="">Nenhum</option>' +
+        orcsCliente.map(o => {
+          const num = String(o.numero || 0).padStart(4, '0');
+          const servicos = o.servicos.map(s => (s.tipo === 'Outros Serviços' && s.tipoCustom) ? s.tipoCustom : s.tipo).join(', ');
+          const resumo = servicos.length > 55 ? servicos.slice(0, 55) + '…' : servicos;
+          return `<option value="${o.id}">Nº ${num} - ${resumo}</option>`;
+        }).join('');
+
+      // Se só tem 1 orçamento aprovado, pré-seleciona
+      if (orcsCliente.length === 1) {
+        select.value = orcsCliente[0].id;
+      }
+    }
+
     function abrirModalTransacao(tipo) {
       history.pushState({ modal: true }, '', '#modal-transacao');
       document.getElementById('modal-nova-transacao').classList.remove('hidden');
@@ -1598,13 +1652,22 @@ window.criarOrcamentoParaClienteAtual = function() {
         catSelect.innerHTML = `<option value="Material de Construção">Material de Construção</option><option value="Combustível / Transporte">Combustível / Transporte</option><option value="Ferramentas / Equipamentos">Ferramentas / Equipamentos</option><option value="Alimentação">Alimentação</option><option value="Pagamento de Ajudante/Equipe">Pagamento de Ajudante/Equipe</option><option value="Impostos / Taxas">Impostos / Taxas</option><option value="Outros">Outros</option>`;
       }
       
-      document.getElementById('trans-data').value = new Date().toISOString().split('T')[0]; 
+      document.getElementById('trans-data').value = new Date().toISOString().split('T')[0];
+
+      // Reseta o campo de orçamento
+      document.getElementById('trans-orcamento').innerHTML = '<option value="">Nenhum</option>';
+      document.getElementById('box-trans-orcamento').classList.add('hidden');
+      // Se já havia cliente selecionado, repopula
+      setTimeout(() => atualizarOrcamentosDaTransacao(), 50);
     }
 
     async function salvarTransacao(e) {
       e.preventDefault();
       const btn = document.getElementById('btn-salvar-trans'); btn.innerText = "Salvando...";
       const tipo = document.getElementById('trans-tipo').value;
+      const orcIdStr = document.getElementById('trans-orcamento')?.value || '';
+      const orcamentoId = orcIdStr ? parseInt(orcIdStr) : null;
+
       try {
         await window.addDoc(window.collection(window.db, "transacoes"), {
           uid: window.usuarioAtualId,
@@ -1613,7 +1676,8 @@ window.criarOrcamentoParaClienteAtual = function() {
           categoria: document.getElementById('trans-categoria').value,
           valor: parseFloat(document.getElementById('trans-valor').value),
           cliente: document.getElementById('trans-cliente').value,
-          obs: document.getElementById('trans-obs').value || ''
+          obs: document.getElementById('trans-obs').value || '',
+          orcamentoId: orcamentoId
         });
         fecharModaisFinanceiro();
       } catch (err) { alert("Erro ao salvar transação."); }
@@ -1851,6 +1915,23 @@ function mudarTempoFin(tempo) {
         linhaDesc.style.display = 'none';
       }
 
+      // Preenche bloco de orçamento (se houver vínculo)
+      const linhaOrc = document.getElementById('recibo-linha-orcamento');
+      const orcVinculado = trans.orcamentoId ? orcamentos.find(o => o.id === trans.orcamentoId) : null;
+      if (orcVinculado) {
+        const numOrc = String(orcVinculado.numero || 0).padStart(4, '0');
+        const nomes = orcVinculado.servicos.map(s => (s.tipo === 'Outros Serviços' && s.tipoCustom) ? s.tipoCustom : s.tipo);
+        let listaFinal = '';
+        if (nomes.length === 1) listaFinal = nomes[0];
+        else if (nomes.length === 2) listaFinal = nomes[0] + ' e ' + nomes[1];
+        else listaFinal = nomes.slice(0, -1).join(', ') + ' e ' + nomes[nomes.length - 1];
+        document.getElementById('recibo-numero-orcamento').innerText = numOrc;
+        document.getElementById('recibo-servicos-lista').innerText = listaFinal;
+        linhaOrc.classList.remove('hidden');
+      } else {
+        linhaOrc.classList.add('hidden');
+      }
+
       document.getElementById('recibo-data-recebimento').innerText =
         new Date(trans.data + 'T00:00:00').toLocaleDateString('pt-BR');
       document.getElementById('recibo-pix').innerText = perfil.pix || 'A combinar';
@@ -1969,6 +2050,23 @@ function mudarTempoFin(tempo) {
         linhaDesc.style.display = '';
       } else {
         linhaDesc.style.display = 'none';
+      }
+
+      // Preenche bloco de orçamento (se houver vínculo)
+      const linhaOrc = document.getElementById('recibo-linha-orcamento');
+      const orcVinculado = trans.orcamentoId ? orcamentos.find(o => o.id === trans.orcamentoId) : null;
+      if (orcVinculado) {
+        const numOrc = String(orcVinculado.numero || 0).padStart(4, '0');
+        const nomes = orcVinculado.servicos.map(s => (s.tipo === 'Outros Serviços' && s.tipoCustom) ? s.tipoCustom : s.tipo);
+        let listaFinal = '';
+        if (nomes.length === 1) listaFinal = nomes[0];
+        else if (nomes.length === 2) listaFinal = nomes[0] + ' e ' + nomes[1];
+        else listaFinal = nomes.slice(0, -1).join(', ') + ' e ' + nomes[nomes.length - 1];
+        document.getElementById('recibo-numero-orcamento').innerText = numOrc;
+        document.getElementById('recibo-servicos-lista').innerText = listaFinal;
+        linhaOrc.classList.remove('hidden');
+      } else {
+        linhaOrc.classList.add('hidden');
       }
 
       document.getElementById('recibo-data-recebimento').innerText =
