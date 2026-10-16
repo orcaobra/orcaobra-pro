@@ -610,9 +610,31 @@
     }
 
     let gerandoPDF = false;
-    async function gerarPDFSeguro(element, opt) {
-      if (gerandoPDF) return;
+    let ultimoInicioPDF = 0;
+
+    // Verifica se pode iniciar. Se a flag está presa há mais de 15s, força reset.
+    function podeIniciarPDF() {
+      if (gerandoPDF) {
+        const travado = (Date.now() - ultimoInicioPDF) > 15000;
+        if (travado) {
+          console.warn('Flag gerandoPDF presa há mais de 15s. Forçando reset.');
+          gerandoPDF = false;
+          document.querySelectorAll('.html2pdf__overlay').forEach(e => e.remove());
+        } else {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function marcarInicioPDF() {
       gerandoPDF = true;
+      ultimoInicioPDF = Date.now();
+    }
+
+    async function gerarPDFSeguro(element, opt) {
+      if (!podeIniciarPDF()) return;
+      marcarInicioPDF();
       const destravar = setTimeout(() => {
         console.warn('Timeout de segurança: liberando gerandoPDF');
         gerandoPDF = false;
@@ -646,8 +668,8 @@
 
     async function compartilharPDF(id) {
       const orcamento = orcamentos.find(item => item.id === id); if (!orcamento) return;
-      if (gerandoPDF) return;
-      gerandoPDF = true;
+      if (!podeIniciarPDF()) return;
+      marcarInicioPDF();
       const destravar = setTimeout(() => {
         console.warn('Timeout de segurança: liberando gerandoPDF');
         gerandoPDF = false;
@@ -712,8 +734,8 @@
     async function compartilharContrato() {
       const id = parseInt(document.getElementById('edit-ctr-id').value);
       const orcamento = orcamentos.find(item => item.id === id); if (!orcamento) return;
-      if (gerandoPDF) return;
-      gerandoPDF = true;
+      if (!podeIniciarPDF()) return;
+      marcarInicioPDF();
       const destravar = setTimeout(() => {
         console.warn('Timeout de segurança: liberando gerandoPDF');
         gerandoPDF = false;
@@ -1956,8 +1978,8 @@ function mudarTempoFin(tempo) {
     async function compartilharRecibo(idTransacao) {
       const trans = transacoes.find(t => String(t.id) === String(idTransacao));
       if (!trans || trans.tipo !== 'entrada') return;
-      if (gerandoPDF) return;
-      gerandoPDF = true;
+      if (!podeIniciarPDF()) return;
+      marcarInicioPDF();
 
       const destravar = setTimeout(() => {
         console.warn('Timeout de segurança: liberando gerandoPDF');
@@ -2080,6 +2102,8 @@ function mudarTempoFin(tempo) {
 
     // GERAÇÃO DO RELATÓRIO PDF FINANCEIRO
     window.gerarPDFFinanceiro = function() {
+      // Limpa qualquer overlay órfão de gerações anteriores
+      document.querySelectorAll('.html2pdf__overlay').forEach(e => e.remove());
       const { jsPDF } = window.jspdf; const doc = new jsPDF();
       const fInicio = document.getElementById('fin-filtro-inicio').value; const fFim = document.getElementById('fin-filtro-fim').value;
       const strPeriodo = `Período: ${new Date(fInicio+"T00:00:00").toLocaleDateString('pt-BR')} até ${new Date(fFim+"T00:00:00").toLocaleDateString('pt-BR')}`;
