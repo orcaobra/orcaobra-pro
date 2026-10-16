@@ -439,6 +439,78 @@
     </div>
   </div>
 
+    <div class="hidden">
+    <div id="recibo-template" class="pdf-page-container p-10 text-slate-900 space-y-5 text-[12px] leading-relaxed">
+      
+      <!-- Cabeçalho com logo -->
+      <div class="border-b-2 border-slate-800 pb-3 flex items-center gap-4">
+        <div id="recibo-logo-container" class="hidden">
+          <img id="recibo-logo-img" src="" alt="Logo" class="max-h-16 max-w-[120px] object-contain">
+        </div>
+        <div class="flex-1">
+          <h1 id="recibo-prof-nome" class="text-base font-black text-slate-900 leading-tight"></h1>
+          <p id="recibo-prof-doc" class="text-[10px] text-slate-600"></p>
+          <p id="recibo-prof-whats" class="text-[10px] text-slate-600"></p>
+        </div>
+      </div>
+
+      <!-- Título -->
+      <div class="text-center space-y-1 my-4">
+        <h2 class="text-lg font-black uppercase tracking-wide text-slate-900">Recibo de Pagamento</h2>
+        <p class="text-[11px] text-slate-600">Nº <span id="recibo-numero"></span> • Emitido em <span id="recibo-data-emissao"></span></p>
+      </div>
+
+      <!-- Valor em destaque -->
+      <div class="bg-slate-100 border-2 border-slate-800 rounded-lg p-4 text-center">
+        <p class="text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Valor Recebido</p>
+        <p id="recibo-valor" class="text-2xl font-black text-slate-900"></p>
+        <p id="recibo-valor-extenso" class="text-[11px] text-slate-700 italic mt-1"></p>
+      </div>
+
+      <!-- Corpo do recibo -->
+      <div class="space-y-2 text-[12px] text-justify">
+        <p>
+          Recebi de <strong><span id="recibo-cli-nome"></span></strong>, 
+          WhatsApp <strong><span id="recibo-cli-whats"></span></strong>, 
+          a quantia acima referente a 
+          <strong><span id="recibo-categoria"></span></strong>.
+        </p>
+        <p id="recibo-linha-descricao">
+          <strong>Descrição:</strong> <span id="recibo-descricao"></span>
+        </p>
+        <p>
+          <strong>Data do recebimento:</strong> <span id="recibo-data-recebimento"></span>
+        </p>
+      </div>
+
+      <!-- Forma de pagamento -->
+      <div class="bg-slate-50 border border-slate-300 rounded-lg p-3 text-[11px]">
+        <p><strong>Forma de pagamento:</strong> Pix</p>
+        <p><strong>Chave Pix:</strong> <span id="recibo-pix"></span></p>
+        <p><strong>Titular:</strong> <span id="recibo-pix-titular"></span></p>
+      </div>
+
+      <!-- Assinaturas -->
+      <div class="mt-16 pt-8" style="page-break-inside: avoid;">
+        <p class="text-center text-[11px] mb-12">Para clareza e validade, firmo o presente recibo.</p>
+        <div class="grid grid-cols-2 gap-10 text-center">
+          <div class="border-t border-slate-800 pt-2">
+            <p class="font-bold text-[12px]"><span id="recibo-ass-recebedor"></span></p>
+            <p class="text-[10px] text-slate-500 uppercase">Recebedor</p>
+          </div>
+          <div class="border-t border-slate-800 pt-2">
+            <p class="font-bold text-[12px]"><span id="recibo-ass-cliente"></span></p>
+            <p class="text-[10px] text-slate-500 uppercase">Pagador</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center text-[9px] text-slate-500 border-t pt-2 mt-6">
+        Este recibo é válido como comprovante de pagamento dos serviços descritos acima.
+      </div>
+    </div>
+  </div>
+
   <!-- FIREBASE E SCRIPTS PRINCIPAIS -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -1462,7 +1534,10 @@ window.abrirHistoricoCliente = function(whatsPesquisa) {
     const sinal = t.tipo === 'entrada' ? '+' : '-';
     return `<div class="bg-slate-50 p-2 rounded border border-slate-200 shadow-sm flex justify-between items-center mt-1">
       <div><p class="text-[11px] font-bold text-slate-700">${new Date(t.data+"T00:00:00").toLocaleDateString('pt-BR')} - ${t.categoria}</p></div>
-      <p class="text-[11px] font-bold ${cor}">${sinal} R$ ${parseFloat(t.valor).toFixed(2)}</p>
+      <div class="flex items-center gap-2">
+        <p class="text-[11px] font-bold ${cor}">${sinal} R$ ${parseFloat(t.valor).toFixed(2)}</p>
+        ${t.tipo === 'entrada' ? `<button onclick="gerarRecibo('${t.id}')" class="bg-blue-100 hover:bg-blue-200 text-blue-700 text-[10px] font-bold px-2 py-1 rounded"><i class="fa-solid fa-receipt"></i> Recibo</button>` : ''}
+      </div>
     </div>`;
   }).join('');
 };
@@ -1628,9 +1703,12 @@ function mudarTempoFin(tempo) {
                 <p class="text-[10px] text-slate-500">${t.cliente ? `👤 ${t.cliente} | ` : ''}${t.obs || 'Sem descrição'}</p>
               </div>
             </div>
-            <div class="text-right shrink-0">
+                 <div class="text-right shrink-0">
               <p class="text-xs font-bold ${corVal}">${sinal} ${val.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</p>
-              <button onclick="excluirTransacao('${t.id}')" class="text-[10px] text-red-500 hover:underline">Excluir</button>
+              <div class="flex gap-2 justify-end mt-0.5">
+                ${t.tipo === 'entrada' ? `<button onclick="gerarRecibo('${t.id}')" class="text-[10px] text-blue-600 hover:underline font-semibold"><i class="fa-solid fa-receipt"></i> Recibo</button>` : ''}
+                <button onclick="excluirTransacao('${t.id}')" class="text-[10px] text-red-500 hover:underline">Excluir</button>
+              </div>
             </div>
           </div>
         `;
@@ -1680,6 +1758,227 @@ function mudarTempoFin(tempo) {
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
       });
     }
+        // ===== RECIBO DE PAGAMENTO (início) =====
+    
+    // Converte número para extenso em português (básico, cobre até milhões)
+    function valorPorExtenso(valor) {
+      const unidades = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove'];
+      const dez_a_dezenove = ['dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
+      const dezenas = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
+      const centenas = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'];
+
+      function extensoAte999(n) {
+        if (n === 0) return '';
+        if (n === 100) return 'cem';
+        let partes = [];
+        const c = Math.floor(n / 100);
+        const resto = n % 100;
+        if (c > 0) partes.push(centenas[c]);
+        if (resto >= 10 && resto < 20) {
+          partes.push(dez_a_dezenove[resto - 10]);
+        } else {
+          const d = Math.floor(resto / 10);
+          const u = resto % 10;
+          if (d > 0) partes.push(dezenas[d]);
+          if (u > 0) partes.push(unidades[u]);
+        }
+        return partes.filter(Boolean).join(' e ');
+      }
+
+      const reais = Math.floor(valor);
+      const centavos = Math.round((valor - reais) * 100);
+
+      let texto = '';
+      if (reais === 0) {
+        texto = 'zero reais';
+      } else if (reais === 1) {
+        texto = 'um real';
+      } else {
+        const milhoes = Math.floor(reais / 1000000);
+        const milhares = Math.floor((reais % 1000000) / 1000);
+        const resto = reais % 1000;
+        let partes = [];
+        if (milhoes > 0) partes.push(extensoAte999(milhoes) + (milhoes === 1 ? ' milhão' : ' milhões'));
+        if (milhares > 0) partes.push(milhares === 1 ? 'mil' : extensoAte999(milhares) + ' mil');
+        if (resto > 0) partes.push(extensoAte999(resto));
+        texto = partes.join(' e ') + ' reais';
+      }
+
+      if (centavos > 0) {
+        texto += ' e ' + extensoAte999(centavos) + (centavos === 1 ? ' centavo' : ' centavos');
+      }
+      return texto.charAt(0).toUpperCase() + texto.slice(1);
+    }
+
+    async function gerarRecibo(idTransacao) {
+      const trans = transacoes.find(t => String(t.id) === String(idTransacao));
+      if (!trans) { alert('Lançamento não encontrado.'); return; }
+      if (trans.tipo !== 'entrada') { alert('Recibo só é gerado para entradas.'); return; }
+
+      // Busca dados do cliente vinculado (se houver)
+      const nomeCliente = trans.cliente || 'Não informado';
+      const clienteBD = clientesBD.find(c => c.nome === nomeCliente);
+      const whatsCliente = clienteBD?.whats || (orcamentos.find(o => o.cliente.nome === nomeCliente)?.cliente.whats) || 'Não informado';
+
+      // Preenche o template
+      const logoBox = document.getElementById('recibo-logo-container');
+      const logoImg = document.getElementById('recibo-logo-img');
+      if (perfil.logo) { logoImg.src = perfil.logo; logoBox.classList.remove('hidden'); }
+      else { logoBox.classList.add('hidden'); }
+
+      document.getElementById('recibo-prof-nome').innerText = perfil.nome || 'Prestador de Serviço';
+      document.getElementById('recibo-prof-doc').innerText = perfil.doc ? `CPF/CNPJ: ${perfil.doc}` : '';
+      document.getElementById('recibo-prof-whats').innerText = perfil.whats ? `WhatsApp: ${perfil.whats}` : '';
+
+      // Número do recibo = ID curto do lançamento (últimos 4 dígitos do timestamp)
+      const numRecibo = String(trans.id).slice(-6);
+      document.getElementById('recibo-numero').innerText = numRecibo;
+      document.getElementById('recibo-data-emissao').innerText = new Date().toLocaleDateString('pt-BR');
+
+      const valor = parseFloat(trans.valor) || 0;
+      document.getElementById('recibo-valor').innerText = valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      document.getElementById('recibo-valor-extenso').innerText = '(' + valorPorExtenso(valor) + ')';
+
+      document.getElementById('recibo-cli-nome').innerText = nomeCliente;
+      document.getElementById('recibo-cli-whats').innerText = whatsCliente;
+      document.getElementById('recibo-categoria').innerText = trans.categoria || 'pagamento';
+
+      const linhaDesc = document.getElementById('recibo-linha-descricao');
+      if (trans.obs && trans.obs.trim() !== '') {
+        document.getElementById('recibo-descricao').innerText = trans.obs;
+        linhaDesc.style.display = '';
+      } else {
+        linhaDesc.style.display = 'none';
+      }
+
+      document.getElementById('recibo-data-recebimento').innerText =
+        new Date(trans.data + 'T00:00:00').toLocaleDateString('pt-BR');
+      document.getElementById('recibo-pix').innerText = perfil.pix || 'A combinar';
+      document.getElementById('recibo-pix-titular').innerText = perfil.pixTitular || 'Não informado';
+      document.getElementById('recibo-ass-recebedor').innerText = perfil.nome || 'Recebedor';
+      document.getElementById('recibo-ass-cliente').innerText = nomeCliente;
+
+      // Gera o PDF
+      const element = document.getElementById('recibo-template');
+      const opt = {
+        margin: [0.4, 0.4, 0.4, 0.4],
+        filename: `Recibo_${nomeCliente.replace(/\s+/g, '_')}_${numRecibo}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
+      };
+      gerarPDFSeguro(element, opt);
+    }
+
+    // Versão para compartilhar direto (WhatsApp etc)
+    async function compartilharRecibo(idTransacao) {
+      const trans = transacoes.find(t => String(t.id) === String(idTransacao));
+      if (!trans || trans.tipo !== 'entrada') return;
+      if (gerandoPDF) return;
+      gerandoPDF = true;
+
+      const destravar = setTimeout(() => {
+        console.warn('Timeout de segurança: liberando gerandoPDF');
+        gerandoPDF = false;
+        document.querySelectorAll('.html2pdf__overlay').forEach(e => e.remove());
+      }, 90000);
+      const limpar = () => document.querySelectorAll('.html2pdf__overlay').forEach(e => e.remove());
+      limpar();
+
+      const nomeCliente = trans.cliente || 'Cliente';
+      const numRecibo = String(trans.id).slice(-6);
+      const nomeArquivo = `Recibo_${nomeCliente.replace(/\s+/g, '_')}_${numRecibo}.pdf`;
+      let blob = null;
+
+      try {
+        // Reaproveita a função de popular o template chamando via wrapper
+        await new Promise(r => { gerarReciboPopup(idTransacao); setTimeout(r, 300); });
+
+        const element = document.getElementById('recibo-template');
+        window.scrollTo(0, 0);
+        const imgs = Array.from(element.querySelectorAll('img')).filter(i => i.getAttribute('src'));
+        await Promise.all(imgs.map(i => i.complete ? null : new Promise(r => { i.onload = i.onerror = r; })));
+        await new Promise(r => setTimeout(r, 200));
+
+        const opt = {
+          margin: [0.4, 0.4, 0.4, 0.4],
+          filename: nomeArquivo,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
+          jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['css', 'legacy'] }
+        };
+
+        blob = await html2pdf().set(opt).from(element).outputPdf('blob');
+        const file = new File([blob], nomeArquivo, { type: 'application/pdf' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await Promise.race([
+            navigator.share({ files: [file], title: `Recibo ${numRecibo}`, text: `Recibo - ${perfil.nome || ''}` }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('share-timeout')), 30000))
+          ]);
+        } else {
+          baixarBlobPDF(blob, nomeArquivo);
+          alert('Este aparelho não permite compartilhar direto. O PDF foi baixado, é só enviar o arquivo.');
+        }
+      } catch (e) {
+        if (e && e.name === 'AbortError') { /* cancelado */ }
+        else if (e && e.message === 'share-timeout') { if (blob) baixarBlobPDF(blob, nomeArquivo); }
+        else if (blob) { baixarBlobPDF(blob, nomeArquivo); alert('Não foi possível abrir o compartilhamento. O PDF foi baixado.'); }
+        else { console.error(e); alert('Não foi possível gerar o recibo. Tente novamente.'); }
+      } finally {
+        clearTimeout(destravar);
+        limpar();
+        gerandoPDF = false;
+      }
+    }
+
+    // Helper: só popula o template, sem gerar PDF (para o compartilhar usar)
+    function gerarReciboPopup(idTransacao) {
+      const trans = transacoes.find(t => String(t.id) === String(idTransacao));
+      if (!trans) return;
+      const nomeCliente = trans.cliente || 'Não informado';
+      const clienteBD = clientesBD.find(c => c.nome === nomeCliente);
+      const whatsCliente = clienteBD?.whats || 'Não informado';
+
+      const logoBox = document.getElementById('recibo-logo-container');
+      const logoImg = document.getElementById('recibo-logo-img');
+      if (perfil.logo) { logoImg.src = perfil.logo; logoBox.classList.remove('hidden'); }
+      else { logoBox.classList.add('hidden'); }
+
+      document.getElementById('recibo-prof-nome').innerText = perfil.nome || 'Prestador de Serviço';
+      document.getElementById('recibo-prof-doc').innerText = perfil.doc ? `CPF/CNPJ: ${perfil.doc}` : '';
+      document.getElementById('recibo-prof-whats').innerText = perfil.whats ? `WhatsApp: ${perfil.whats}` : '';
+
+      const numRecibo = String(trans.id).slice(-6);
+      document.getElementById('recibo-numero').innerText = numRecibo;
+      document.getElementById('recibo-data-emissao').innerText = new Date().toLocaleDateString('pt-BR');
+
+      const valor = parseFloat(trans.valor) || 0;
+      document.getElementById('recibo-valor').innerText = valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      document.getElementById('recibo-valor-extenso').innerText = '(' + valorPorExtenso(valor) + ')';
+
+      document.getElementById('recibo-cli-nome').innerText = nomeCliente;
+      document.getElementById('recibo-cli-whats').innerText = whatsCliente;
+      document.getElementById('recibo-categoria').innerText = trans.categoria || 'pagamento';
+
+      const linhaDesc = document.getElementById('recibo-linha-descricao');
+      if (trans.obs && trans.obs.trim() !== '') {
+        document.getElementById('recibo-descricao').innerText = trans.obs;
+        linhaDesc.style.display = '';
+      } else {
+        linhaDesc.style.display = 'none';
+      }
+
+      document.getElementById('recibo-data-recebimento').innerText =
+        new Date(trans.data + 'T00:00:00').toLocaleDateString('pt-BR');
+      document.getElementById('recibo-pix').innerText = perfil.pix || 'A combinar';
+      document.getElementById('recibo-pix-titular').innerText = perfil.pixTitular || 'Não informado';
+      document.getElementById('recibo-ass-recebedor').innerText = perfil.nome || 'Recebedor';
+      document.getElementById('recibo-ass-cliente').innerText = nomeCliente;
+    }
+    // ===== RECIBO DE PAGAMENTO (fim) =====
 
     // GERAÇÃO DO RELATÓRIO PDF FINANCEIRO
     window.gerarPDFFinanceiro = function() {
