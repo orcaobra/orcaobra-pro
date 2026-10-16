@@ -530,6 +530,11 @@
     async function gerarPDFSeguro(element, opt) {
       if (gerandoPDF) return;
       gerandoPDF = true;
+      const destravar = setTimeout(() => {
+        console.warn('Timeout de segurança: liberando gerandoPDF');
+        gerandoPDF = false;
+        document.querySelectorAll('.html2pdf__overlay').forEach(e => e.remove());
+      }, 90000);
       const limpar = () => document.querySelectorAll('.html2pdf__overlay').forEach(e => e.remove());
       limpar();
       window.scrollTo(0, 0);
@@ -542,6 +547,7 @@
         console.error(e);
         alert('Não foi possível gerar o PDF. Tente novamente.');
       } finally {
+        clearTimeout(destravar);
         limpar();
         gerandoPDF = false;
       }
@@ -559,6 +565,11 @@
       const orcamento = orcamentos.find(item => item.id === id); if (!orcamento) return;
       if (gerandoPDF) return;
       gerandoPDF = true;
+      const destravar = setTimeout(() => {
+        console.warn('Timeout de segurança: liberando gerandoPDF');
+        gerandoPDF = false;
+        document.querySelectorAll('.html2pdf__overlay').forEach(e => e.remove());
+      }, 90000);
       const limpar = () => document.querySelectorAll('.html2pdf__overlay').forEach(e => e.remove());
       limpar();
       const numero = String(orcamento.numero || 0).padStart(4, '0');
@@ -582,11 +593,14 @@
         blob = await html2pdf().set(opt).from(element).outputPdf('blob');
         const file = new File([blob], nomeArquivo, { type: 'application/pdf' });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: `Orçamento Nº ${numero}`,
-            text: `Orçamento Nº ${numero} - ${perfil.nome || ''}`
-          });
+          await Promise.race([
+            navigator.share({
+              files: [file],
+              title: `Orçamento Nº ${numero}`,
+              text: `Orçamento Nº ${numero} - ${perfil.nome || ''}`
+            }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('share-timeout')), 30000))
+          ]);
         } else {
           baixarBlobPDF(blob, nomeArquivo);
           alert('Este aparelho não permite compartilhar direto. O PDF foi baixado, é só enviar o arquivo.');
@@ -594,6 +608,8 @@
       } catch (e) {
         if (e && e.name === 'AbortError') {
           // a pessoa fechou a janela de compartilhar, não é erro
+        } else if (e && e.message === 'share-timeout') {
+          if (blob) baixarBlobPDF(blob, nomeArquivo);
         } else if (blob) {
           baixarBlobPDF(blob, nomeArquivo);
           alert('Não foi possível abrir o compartilhamento. O PDF foi baixado, é só enviar o arquivo.');
@@ -602,6 +618,7 @@
           alert('Não foi possível gerar o PDF. Tente novamente.');
         }
       } finally {
+        clearTimeout(destravar);
         limpar();
         gerandoPDF = false;
       }
@@ -614,6 +631,11 @@
       const orcamento = orcamentos.find(item => item.id === id); if (!orcamento) return;
       if (gerandoPDF) return;
       gerandoPDF = true;
+      const destravar = setTimeout(() => {
+        console.warn('Timeout de segurança: liberando gerandoPDF');
+        gerandoPDF = false;
+        document.querySelectorAll('.html2pdf__overlay').forEach(e => e.remove());
+      }, 90000);
       const limpar = () => document.querySelectorAll('.html2pdf__overlay').forEach(e => e.remove());
       limpar();
       const numero = String(orcamento.numero || 0).padStart(4, '0');
@@ -662,7 +684,10 @@
         blob = await html2pdf().set(opt).from(element).outputPdf('blob');
         const file = new File([blob], nomeArquivo, { type: 'application/pdf' });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: `Contrato Nº ${numero}`, text: `Contrato Nº ${numero} - ${perfil.nome || ''}` });
+          await Promise.race([
+            navigator.share({ files: [file], title: `Contrato Nº ${numero}`, text: `Contrato Nº ${numero} - ${perfil.nome || ''}` }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('share-timeout')), 30000))
+          ]);
           fecharModalContrato();
         } else {
           baixarBlobPDF(blob, nomeArquivo);
@@ -672,6 +697,8 @@
       } catch (e) {
         if (e && e.name === 'AbortError') {
           // a pessoa fechou a janela de compartilhar, não é erro
+        } else if (e && e.message === 'share-timeout') {
+          if (blob) baixarBlobPDF(blob, nomeArquivo);
         } else if (blob) {
           baixarBlobPDF(blob, nomeArquivo);
           fecharModalContrato();
@@ -681,6 +708,7 @@
           alert('Não foi possível gerar o PDF. Tente novamente.');
         }
       } finally {
+        clearTimeout(destravar);
         limpar();
         gerandoPDF = false;
       }
