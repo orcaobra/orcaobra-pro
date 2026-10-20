@@ -575,6 +575,13 @@
 
   <!-- LÓGICA DO APLICATIVO -->
   <script>
+
+// Celular: mantém 800 (como já funciona). Computador: usa a largura real da janela.
+function larguraJanelaPDF() {
+  const ehCelular = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 800;
+  return ehCelular ? 800 : document.documentElement.clientWidth;
+}
+
      // ===== FUNÇÕES NOVAS (início) =====
     function enviarWhatsApp(id) {
       const orc = orcamentos.find(o => o.id === id);
@@ -691,7 +698,7 @@
           margin: [0.3, 0.3, 0.3, 0.3],
           filename: nomeArquivo,
           image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
+          html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: larguraJanelaPDF() },
           jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
           pagebreak: { mode: ['css', 'legacy'], avoid: 'tr' }
         };
@@ -782,7 +789,7 @@
           margin: [0.5, 0.4, 0.5, 0.4],
           filename: nomeArquivo,
           image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
+          html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: larguraJanelaPDF() },
           jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
           pagebreak: { mode: ['css', 'legacy'] }
         };
@@ -1241,7 +1248,7 @@ const opt = {
   margin: [0.5, 0.4, 0.5, 0.4],
   filename: `Contrato_${orcamento.cliente.nome.replace(/\s+/g, '_')}#${String(orcamento.numero || 0).padStart(4, '0')}.pdf`,
   image: { type: 'jpeg', quality: 0.98 },
-  html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
+  html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: larguraJanelaPDF() },
   jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
   pagebreak: { mode: ['css', 'legacy'] }
 };
@@ -1256,7 +1263,7 @@ function gerarPDF(id) {
     margin: [0.3, 0.3, 0.3, 0.3],
     filename: `Cliente_${orcamento.cliente.nome.replace(/\s+/g, '_')}#${String(orcamento.numero || 0).padStart(4, '0')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
+    html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: larguraJanelaPDF() },
     jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
     pagebreak: { mode: ['css', 'legacy'], avoid: 'tr' }
   };
@@ -1967,7 +1974,7 @@ function mudarTempoFin(tempo) {
         margin: [0.4, 0.4, 0.4, 0.4],
         filename: `Recibo_${nomeCliente.replace(/\s+/g, '_')}_${numRecibo}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
+        html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: larguraJanelaPDF() },
         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['css', 'legacy'] }
       };
@@ -2008,7 +2015,7 @@ function mudarTempoFin(tempo) {
           margin: [0.4, 0.4, 0.4, 0.4],
           filename: nomeArquivo,
           image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
+          html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: larguraJanelaPDF() },
           jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
           pagebreak: { mode: ['css', 'legacy'] }
         };
